@@ -1,9 +1,8 @@
-package com.codenjoy.dojo.snakebattle.client.pathfinder.util;
+package com.codenjoy.dojo.snakebattle.client.pathfinder;
 
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.Board;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState;
@@ -11,8 +10,13 @@ import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import static com.codenjoy.dojo.services.Direction.ACT;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_HORIZONTAL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_LEFT_DOWN;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_LEFT_UP;
@@ -33,6 +37,11 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_LEFT;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_RIGHT;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_SLEEP;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_UP;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_DOWN;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_LEFT;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_RIGHT;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_UP;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_INACTIVE;
 import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_DEAD;
 import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_DOWN;
 import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_EVIL;
@@ -50,7 +59,7 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.TAIL_INACTIVE;
 
 public class PathFinderUtils {
 
-    public static final int GROUP_STEP = 5;
+    public static final int GROUP_STEP = 10;
     public static final int[][] childrenDirections = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
 
     public static final Elements[] myHead = {HEAD_DOWN,
@@ -90,6 +99,14 @@ public class PathFinderUtils {
             ENEMY_HEAD_EVIL,   // противник скушал таблетку ярости
             ENEMY_HEAD_FLY,    // противник скушал таблетку полета
             ENEMY_HEAD_SLEEP};
+    public static final Elements[] enemyTail = {
+            ENEMY_TAIL_END_DOWN,
+            ENEMY_TAIL_END_LEFT,
+            ENEMY_TAIL_END_UP,
+            ENEMY_TAIL_END_RIGHT,
+            ENEMY_TAIL_INACTIVE};
+
+    //public static final Elements[] allHeads = myHead
 
     public static final Elements[] optionalObstacles = {STONE};
 
@@ -111,18 +128,17 @@ public class PathFinderUtils {
             }
         }
 
-        return Direction.STOP;
+        return Direction.RIGHT;
 
     }
 
-    public static PathPoint buildPathPoint(Point p, Elements elementType) {
-        PathPoint pathPoint = new PathPoint();
-        pathPoint.setX(p.getX());
-        pathPoint.setY(p.getY());
-        pathPoint.setElementType(elementType);
-        pathPoint.setPathPointPriority(getPathPointPriority(elementType));
-
-        return pathPoint;
+    public static PathPoint buildPathPoint(int x, int y, Elements elementType) {
+        return PathPoint.builder()
+                .x(x)
+                .y(y)
+                .elementType(elementType)
+                .pathPointPriority(getPathPointPriority(elementType))
+                .build();
     }
 
     public static int calculateEstimatedDistance(int currentX, int currentY, int targetX, int targetY) {
@@ -164,62 +180,72 @@ public class PathFinderUtils {
     }
 
     public static boolean canEatStone(Board board) {
-        int length = calculateSnakeLengthStupid(board);
+        int length = calculateSnakeLengthStupid();
         return length > 4
-                || PathFinder.snake.getState().equals(SnakeState.FURY); //calculateEstimatedDistance(board.getMe().getX());
+                || world.getMySnake().getState().equals(SnakeState.FURY); //calculateEstimatedDistance(board.getMe().getX());
     }
 
 
-    public static int calculateSnakeLengthStupid(Board board) {
-        List<Point> head = board.get(myHead);
-        List<Point> body = board.get(myBody);
-        List<Point> tail = board.get(myTail);
+    public static int calculateSnakeLengthStupid() {
+        List<Point> head = world.getBoard().get(myHead);
+        List<Point> body = world.getBoard().get(myBody);
+        List<Point> tail = world.getBoard().get(myTail);
 
         return head.size() + body.size() + tail.size();
     }
 
-    //private static int calculateSnakeLength(Board board) {
-    //    Point me = board.getMe();
+    public static int calculateTotalEnemyLengthStupid() {
+        List<Point> head = world.getBoard().get(enemyHead);
+        List<Point> body = world.getBoard().get(enemyBody);
+        List<Point> tail = world.getBoard().get(enemyTail);
+
+        return head.size() + body.size() + tail.size();
+    }
     //
-    //    Elements current = board.getAt(me);
-    //    Point previous = null;
-    //    int length = 1;
+    //public static Map<Set<Elements>, Set<Elements>> buildElementsMap() {
+    //    Map<Set<Elements>, Set<Elements>> elementsMap = new HashMap<>();
     //
-    //    while (!Arrays.asList(myTail).contains(current)) {
+    //    elementsMap.put()
     //
-    //    }
-    //
-    //    return 0;
+    //    return  null;
     //}
 
-
-    //public static PathPoint findNextSnakePiece(Board board, PathPoint previous, PathPoint target) {
-    //    for (int[] direction : childrenDirections) {
-    //        int childX = target.getX() + direction[0];
-    //        int childY = target.getY() + direction[1];
+    //public static PathPoint calculateLength(Board board, PathPoint head) {
+    //    PathPoint current = head;
+    //    PathPoint previous = null;
+    //    List<PathPoint> visited = new ArrayList<>();
     //
-    //        Elements element = board.getAt(childX, childY);
+    //    while (current != null) {
+    //        for (int[] direction : childrenDirections) {
+    //            int childX = current.getX() + direction[0];
+    //            int childY = current.getY() + direction[1];
     //
-    //        if (!Arrays.asList(myBody, myTail).contains(element) ) {
-    //            continue;
+    //            Elements element = board.getAt(childX, childY);
+    //
+    //            PathPoint child = new PathPoint();
+    //            child.setX(current.getX() + direction[0]);
+    //            child.setY(current.getY() + direction[1]);
+    //            child.setParent(current);
+    //
+    //            if (!isSnakeBody(element)) {
+    //                continue;
+    //            }
+    //
+    //            child.getParent()
+    //
     //        }
-    //
-    //        if ()
-    //
-    //        if (!canPassThrough(board, target.getX() + direction[0], target.getY() + direction[1])) {
-    //            continue;
-    //        }
-    //
-    //        PathPoint child = new PathPoint();
-    //        child.setX(target.getX() + direction[0]);
-    //        child.setY(target.getY() + direction[1]);
-    //        child.setParent(target);
-    //
-    //        children.add(child);
     //    }
+    //
+    //
     //
     //    return null;
     //}
+
+    public static boolean isSnakeBody(Elements element) {
+        return Set.of(enemyBody, myBody, enemyTail, myTail).stream()
+                .flatMap(Arrays::stream)
+                .anyMatch(e -> e.equals(element));
+    }
 
 
     public static List<PathPoint> generateChildren(Board board, PathPoint parent, PathPoint target) {
@@ -231,12 +257,16 @@ public class PathFinderUtils {
                 continue;
             }
 
-            PathPoint child = new PathPoint();
-            child.setX(parent.getX() + direction[0]);
-            child.setY(parent.getY() + direction[1]);
-            child.setParent(parent);
-            child.setG(parent.getG() + 1);
-            child.setH(calculateEstimatedDistance(child.getX(), child.getY(), target.getX(), target.getY()));
+            int childX = parent.getX() + direction[0];
+            int childY = parent.getY() + direction[1];
+
+            PathPoint child = PathPoint.builder()
+                    .x(childX)
+                    .y(childY)
+                    .parent(parent)
+                    .g(parent.getG() + 1)
+                    .h(calculateEstimatedDistance(childX, childY, target.getX(), target.getY()))
+                    .build();
             child.setF(child.getG() + child.getH());
 
             children.add(child);
@@ -248,4 +278,14 @@ public class PathFinderUtils {
     public static int getGroup(int estimatedDistance) {
         return GROUP_STEP * (estimatedDistance / GROUP_STEP) + GROUP_STEP;
     }
+
+    public static String buildAct(Direction direction, boolean isDirectionBefore) {
+        if (isDirectionBefore) {
+            return direction.toString() + ", " + ACT.toString();
+        } else {
+            return ACT.toString() + ", " + direction.toString();
+        }
+    }
+
+
 }

@@ -9,6 +9,5 @@ public class Enemy extends Snake {
 
     private int length;
     private int distance;
-    private PathPoint head;
 
 }

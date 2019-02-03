@@ -5,5 +5,13 @@ import lombok.Data;
 @Data
 public class Snake {
 
-    private SnakeState state = SnakeState.EMPTY;
+    SnakeState state = SnakeState.NORMAL;
+    protected boolean hasStone;
+    protected PathPoint head;
+    protected int stoneCount;
+
+    public int changeStoneCount(int delta) {
+        int newCount = stoneCount + delta;
+        return stoneCount = newCount > 0 ? newCount : 0;
+    }
 }

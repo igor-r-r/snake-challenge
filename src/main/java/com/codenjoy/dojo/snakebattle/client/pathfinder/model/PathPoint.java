@@ -2,11 +2,13 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
 
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder
 public class PathPoint implements Comparable<PathPoint> {
 
     @EqualsAndHashCode.Include

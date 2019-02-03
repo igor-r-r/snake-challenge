@@ -2,8 +2,9 @@ package com.codenjoy.dojo.snakebattle.client;
 
 import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.services.Dice;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.MapHelper;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.AStar;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.StonePathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 
@@ -26,7 +27,7 @@ public class PathFinderTest {
     @Before
     public void setup() {
         dice = mock(Dice.class);
-        ai = new YourSolver(dice, new PathFinder());
+        ai = new YourSolver(dice, new StonePathFinder(new AStar()));
     }
 
     private Board board(String board) {
@@ -78,7 +79,7 @@ public class PathFinderTest {
                 "☼☼        ☼" +
                 "☼☼☼☼☼☼☼☼☼☼☼");
 
-        PathFinder pathFinder = new PathFinder();
+        StonePathFinder pathFinder = new StonePathFinder(new AStar());
         world.updateWorldState(board);
         Optional<PathFinderResult> resultActual = pathFinder.findNextDirection();
 
@@ -101,7 +102,7 @@ public class PathFinderTest {
                 "☼☼        ☼" +
                 "☼☼☼☼☼☼☼☼☼☼☼");
 
-        PathFinder pathFinder = new PathFinder();
+        PathFinder pathFinder = new StonePathFinder(new AStar());
         world.updateWorldState(board);
         Optional<PathFinderResult> resultActual = pathFinder.findNextDirection();
 
@@ -124,7 +125,7 @@ public class PathFinderTest {
                 "☼☼        ☼" +
                 "☼☼☼☼☼☼☼☼☼☼☼");
 
-        PathFinder pathFinder = new PathFinder();
+        PathFinder pathFinder = new StonePathFinder(new AStar());
         world.updateWorldState(board);
         Optional<PathFinderResult> resultActual = pathFinder.findNextDirection();
 
