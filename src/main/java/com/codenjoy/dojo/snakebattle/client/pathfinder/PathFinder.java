@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import static com.codenjoy.dojo.services.Direction.ACT;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.buildAct;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.calculateSnakeLengthStupid;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.canPassThrough;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.childrenDirections;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.getCloseDirection;
@@ -72,9 +71,7 @@ public abstract class PathFinder {
                 world.getMySnake().changeStoneCount(1);
             }
 
-            if (world.getBoard().getAt(result.getNextPoint().getX(), result.getNextPoint().getY()).equals(Elements.FURY_PILL)) {
-                world.getMySnake().setState(SnakeState.FURY);
-            } else if (shouldDropStone(result.getNextPoint().getX(), result.getNextPoint().getY())) {
+            if (shouldDropStone(result.getNextPoint().getX(), result.getNextPoint().getY())) {
                 world.getMySnake().changeStoneCount(-1);
                 return buildAct(result.getDirection(), false);
             }
@@ -85,6 +82,8 @@ public abstract class PathFinder {
     }
 
     protected boolean shouldDropStone(int nextX, int nextY) {
+        System.out.println("Stone check: " + world.getMySnake().getStoneCount());
+        System.out.println("Stone check: " + world.getMySnake().getState());
         return (world.getBoard().getAt(nextX, nextY).equals(Elements.FURY_PILL)
                 || world.getMySnake().getLength() > 4
                 || world.getMySnake().getState().equals(SnakeState.FURY))

@@ -132,6 +132,10 @@ public class PathFinderUtils {
     }
 
     public static boolean canPassThrough(Board board, int targetX, int targetY) {
+        if (targetX < 0 || targetX > 29 || targetY < 0 || targetY > 29) {
+            return false;
+        }
+
         if (board.isBarrierAt(targetX, targetY)) {
             return false;
         }

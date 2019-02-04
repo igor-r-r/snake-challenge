@@ -66,7 +66,7 @@ public class EnemyPathFinder extends PathFinder {
 
     private PathFinderResult getNextDirectionResult(List<PathFinderResult> results) {
         System.out.println("Path finder result: " + results.stream()
-                .map(p -> p.getTargetElementType())
+                .map(PathFinderResult::getTargetElementType)
                 .collect(Collectors.toList()));
         int minDistance = Integer.MAX_VALUE;
         PathFinderResult result = null;
