@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.getCloseDirection;
@@ -20,7 +21,7 @@ public class StonePathFinder extends PathFinder {
     }
 
     public Optional<PathFinderResult> findNextDirection() {
-        for (Map.Entry<Integer, List<PathPoint>> group : world.getPathPointGroups().entrySet()) {
+        for (Map.Entry<Integer, List<PathPoint>> group : world.getRegularPathPointGroups().entrySet()) {
 
             if (group.getValue() != null) {
                 return Optional.of(getNextDirectionResult(getGroupResults(group.getValue())));
@@ -31,9 +32,12 @@ public class StonePathFinder extends PathFinder {
     }
 
     public List<PathFinderResult> getGroupResults(List<PathPoint> pathPoints) {
-        return pathPoints.stream()
-                .map(p -> finder.findSinglePath(p))
-                .collect(Collectors.toList());
+        Stream<PathFinderResult> stream = pathPoints.stream()
+                .map(p -> finder.findSinglePath(p));
+
+        System.out.println(stream);
+
+        return stream.collect(Collectors.toList());
     }
 
     private PathFinderResult getNextDirectionResult(List<PathFinderResult> results) {

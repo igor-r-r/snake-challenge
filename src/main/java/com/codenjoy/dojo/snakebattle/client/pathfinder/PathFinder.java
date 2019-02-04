@@ -74,9 +74,7 @@ public abstract class PathFinder {
 
             if (world.getBoard().getAt(result.getNextPoint().getX(), result.getNextPoint().getY()).equals(Elements.FURY_PILL)) {
                 world.getMySnake().setState(SnakeState.FURY);
-            }
-
-            else if (shouldDropStone(result.getNextPoint().getX(), result.getNextPoint().getY())) {
+            } else if (shouldDropStone(result.getNextPoint().getX(), result.getNextPoint().getY())) {
                 world.getMySnake().changeStoneCount(-1);
                 return buildAct(result.getDirection(), false);
             }
@@ -87,9 +85,10 @@ public abstract class PathFinder {
     }
 
     protected boolean shouldDropStone(int nextX, int nextY) {
-        return world.getBoard().getAt(nextX, nextY).equals(Elements.FURY_PILL)
-                || calculateSnakeLengthStupid() > 4
-                || world.getMySnake().getState().equals(SnakeState.FURY);
+        return (world.getBoard().getAt(nextX, nextY).equals(Elements.FURY_PILL)
+                || world.getMySnake().getLength() > 4
+                || world.getMySnake().getState().equals(SnakeState.FURY))
+                && world.getMySnake().getStoneCount() > 0;
     }
 
 }

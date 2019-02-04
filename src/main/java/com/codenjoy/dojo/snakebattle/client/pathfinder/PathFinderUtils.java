@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.codenjoy.dojo.services.Direction.ACT;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinder.world;
@@ -95,7 +96,7 @@ public class PathFinderUtils {
             ENEMY_HEAD_LEFT,
             ENEMY_HEAD_RIGHT,
             ENEMY_HEAD_UP,
-            ENEMY_HEAD_DEAD,   // этот раунд противник проиграл
+            //ENEMY_HEAD_DEAD,   // этот раунд противник проиграл
             ENEMY_HEAD_EVIL,   // противник скушал таблетку ярости
             ENEMY_HEAD_FLY,    // противник скушал таблетку полета
             ENEMY_HEAD_SLEEP};
@@ -106,14 +107,7 @@ public class PathFinderUtils {
             ENEMY_TAIL_END_RIGHT,
             ENEMY_TAIL_INACTIVE};
 
-    //public static final Elements[] allHeads = myHead
-
     public static final Elements[] optionalObstacles = {STONE};
-
-    // needed to define which point should be visited first
-    public static PathPointPriority getPathPointPriority(Elements elementType) {
-        return PathPointPriority.getByElementType(elementType);
-    }
 
     public static Direction getCloseDirection(int headX, int headY, int targetX, int targetY) {
         if (Math.abs(headX - targetX) + Math.abs(headY - targetY) == 1) {
@@ -130,15 +124,6 @@ public class PathFinderUtils {
 
         return Direction.RIGHT;
 
-    }
-
-    public static PathPoint buildPathPoint(int x, int y, Elements elementType) {
-        return PathPoint.builder()
-                .x(x)
-                .y(y)
-                .elementType(elementType)
-                .pathPointPriority(getPathPointPriority(elementType))
-                .build();
     }
 
     public static int calculateEstimatedDistance(int currentX, int currentY, int targetX, int targetY) {
@@ -167,21 +152,22 @@ public class PathFinderUtils {
         }
 
         // TODO temporarily not allowed
-        if (Arrays.asList(enemyHead).contains(board.getAt(targetX, targetY))) {
+        if ((Arrays.asList(enemyHead).contains(board.getAt(targetX, targetY))
+                && world.getMySnake().getLength() < world.getTotalEnemyLength() + 2)
+                || board.getAt(targetX, targetY).equals(ENEMY_HEAD_EVIL)) {
             return false;
         }
 
         // STONE is allowed if length is more than 3
-        if (Arrays.asList(STONE).contains(board.getAt(targetX, targetY)) && !canEatStone(board)) {
+        if (Arrays.asList(STONE).contains(board.getAt(targetX, targetY)) && !canEatStone()) {
             return false;
         }
 
         return true;
     }
 
-    public static boolean canEatStone(Board board) {
-        int length = calculateSnakeLengthStupid();
-        return length > 4
+    public static boolean canEatStone() {
+        return world.getMySnake().getLength() > 4
                 || world.getMySnake().getState().equals(SnakeState.FURY); //calculateEstimatedDistance(board.getMe().getX());
     }
 
@@ -201,45 +187,6 @@ public class PathFinderUtils {
 
         return head.size() + body.size() + tail.size();
     }
-    //
-    //public static Map<Set<Elements>, Set<Elements>> buildElementsMap() {
-    //    Map<Set<Elements>, Set<Elements>> elementsMap = new HashMap<>();
-    //
-    //    elementsMap.put()
-    //
-    //    return  null;
-    //}
-
-    //public static PathPoint calculateLength(Board board, PathPoint head) {
-    //    PathPoint current = head;
-    //    PathPoint previous = null;
-    //    List<PathPoint> visited = new ArrayList<>();
-    //
-    //    while (current != null) {
-    //        for (int[] direction : childrenDirections) {
-    //            int childX = current.getX() + direction[0];
-    //            int childY = current.getY() + direction[1];
-    //
-    //            Elements element = board.getAt(childX, childY);
-    //
-    //            PathPoint child = new PathPoint();
-    //            child.setX(current.getX() + direction[0]);
-    //            child.setY(current.getY() + direction[1]);
-    //            child.setParent(current);
-    //
-    //            if (!isSnakeBody(element)) {
-    //                continue;
-    //            }
-    //
-    //            child.getParent()
-    //
-    //        }
-    //    }
-    //
-    //
-    //
-    //    return null;
-    //}
 
     public static boolean isSnakeBody(Elements element) {
         return Set.of(enemyBody, myBody, enemyTail, myTail).stream()

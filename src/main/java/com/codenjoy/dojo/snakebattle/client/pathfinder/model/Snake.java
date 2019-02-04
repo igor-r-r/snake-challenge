@@ -9,6 +9,7 @@ public class Snake {
     protected boolean hasStone;
     protected PathPoint head;
     protected int stoneCount;
+    private int length;
 
     public int changeStoneCount(int delta) {
         int newCount = stoneCount + delta;

@@ -6,32 +6,30 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState;
-import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.calculateEstimatedDistance;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.calculateSnakeLengthStupid;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.calculateTotalEnemyLengthStupid;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.canEatStone;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.enemyBody;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.enemyHead;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.getGroup;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.WorldBuildHelper.toPathPointList;
 import static com.codenjoy.dojo.snakebattle.model.Elements.APPLE;
+import static com.codenjoy.dojo.snakebattle.model.Elements.FLYING_PILL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.FURY_PILL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.GOLD;
-import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_EVIL;
-import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_FLY;
 import static com.codenjoy.dojo.snakebattle.model.Elements.STONE;
 import static java.util.Arrays.asList;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static java.util.Collections.singletonList;
 
 @Data
 @NoArgsConstructor
@@ -41,10 +39,14 @@ public class World {
     private Snake mySnake = new Snake();
 
     private int totalEnemyLength;
-    private List<PathPoint> allPathPoints;
     private List<PathPoint> applesAndGold;
+    private List<PathPoint> apples;
+    private List<PathPoint> stones;
+    private List<PathPoint> gold;
+    private List<PathPoint> fury;
+    private List<PathPoint> flight;
     private List<PathPoint> valuablePathPoints;
-    private TreeMap<Integer, List<PathPoint>> pathPointGroups;
+    private TreeMap<Integer, List<PathPoint>> regularPathPointGroups;
     private List<Enemy> enemies;
 
     public World(Board board) {
@@ -53,8 +55,9 @@ public class World {
 
     public void updateWorldState(Board board) {
         setBoard(board);
+
+        updateValuablePathPointsSeparate();
         updateValuablePathPoints();
-        updateApplesAndGold();
         updatePathPointGroups();
         updateMySnake();
         updateEnemies();
@@ -64,27 +67,18 @@ public class World {
         updateWorldState(board);
     }
 
-    public void updateValuablePathPoints() {
-        List<PathPoint> pathPoints = new ArrayList<>();
-
-        pathPoints.addAll(toPathPointList(APPLE));
-        //pathPoints.addAll(toPathPointList(board, FLYING_PILL));
-        pathPoints.addAll(toPathPointList(FURY_PILL));
-        pathPoints.addAll(toPathPointList(GOLD));
-        if (canEatStone(board)) {
-            pathPoints.addAll(toPathPointList(STONE));
-        }
-
-        valuablePathPoints = pathPoints;
-    }
-
-    private void updateApplesAndGold() {
+    private void updateValuablePathPointsSeparate() {
         applesAndGold = toPathPointList(APPLE, GOLD);
+        apples = toPathPointList(APPLE);
+        gold = toPathPointList(GOLD);
+        fury = toPathPointList(FURY_PILL);
+        flight = toPathPointList(FLYING_PILL);
+        stones = toPathPointList(STONE);
     }
 
-    public List<PathPoint> toPathPointList(Elements... elements) {
-        return  board.get(elements).stream()
-                .map(p -> buildPathPoint(p.getX(), p.getY(), board.getAt(p)))
+    public void updateValuablePathPoints() {
+        valuablePathPoints = Stream.of(applesAndGold, apples, gold, fury, stones, flight)
+                .flatMap(List::stream)
                 .collect(Collectors.toList());
     }
 
@@ -98,46 +92,41 @@ public class World {
             if (groupMap.containsKey(group)) {
                 groupMap.get(group).add(pathPoint);
             } else {
-                groupMap.put(group, new ArrayList<>(asList(pathPoint)));
+                groupMap.put(group, new ArrayList<>(singletonList(pathPoint)));
             }
         }
 
-        pathPointGroups = groupMap;
+        regularPathPointGroups = groupMap;
     }
 
     private void updateMySnake() {
-        updateSnakeState();
+        updateMySnakeState();
+        updateMySnakeLength();
 
     }
 
-    private void updateSnakeState() {
-        if (!isEmpty(board.get(HEAD_EVIL))) {
-            mySnake.setState(SnakeState.FURY);
-        } else if (!isEmpty(board.get(HEAD_FLY))) {
-            mySnake.setState(SnakeState.FLIGHT);
-        } else {
-            mySnake.setState(SnakeState.NORMAL);
-        }
+    private void updateMySnakeLength() {
+        mySnake.setLength(calculateSnakeLengthStupid());
+    }
+
+    private void updateMySnakeState() {
+        mySnake.setState(SnakeState.getStateByElement(board.getAt(board.getMe())));
     }
 
     public void updateEnemies() {
         setTotalEnemyLength(calculateTotalEnemyLengthStupid());
-        System.out.println("Enemy length: " + totalEnemyLength);
 
-        List<Enemy> enemies = new ArrayList<>();
-        enemies.addAll(toPathPointList(enemyHead).stream().map(this::toEnemy).collect(Collectors.toList()));
-
-        this.enemies = enemies;
+        this.enemies = toPathPointList(enemyHead).stream().map(this::toEnemy).collect(Collectors.toList());
     }
 
-    private Enemy toEnemy(PathPoint pathPoint) {
+    private Enemy toEnemy(PathPoint enemyHead) {
         Enemy enemy = new Enemy();
         Point me = board.getMe();
 
-        enemy.setHead(pathPoint);
-        //enemy.setLength(PathFinderUtils.calculateTotalEnemyLengthStupid()); // TODO calculate length
-        enemy.setDistance(calculateEstimatedDistance(me.getX(), me.getY(), pathPoint.getX(), pathPoint.getY()));
-        enemy.setState(SnakeState.getStateByElement(pathPoint.getElementType()));
+        enemy.setHead(enemyHead);
+        enemy.setLength(SnakeLengthHelper.calculateEnemyLength(enemyHead)); // TODO calculate length
+        enemy.setDistance(calculateEstimatedDistance(me.getX(), me.getY(), enemyHead.getX(), enemyHead.getY()));
+        enemy.setState(SnakeState.getStateByElement(enemyHead.getElementType()));
 
         return enemy;
     }

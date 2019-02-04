@@ -5,15 +5,17 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.buildPathPoint;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.calculateSnakeLengthStupid;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.getCloseDirection;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.SnakeLengthHelper.calculateEnemyLength;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.isPriorityHigher;
 
 public class EnemyPathFinder extends PathFinder {
@@ -23,7 +25,7 @@ public class EnemyPathFinder extends PathFinder {
     }
 
     public Optional<PathFinderResult> findNextDirection() {
-        if (calculateSnakeLengthStupid() - world.getTotalEnemyLength() > 2) {
+
             List<Enemy> enemies = world.getEnemies();
 
             List<PathFinderResult> enemyResults = getAllResults(enemies.stream()
@@ -31,25 +33,41 @@ public class EnemyPathFinder extends PathFinder {
                             e.getHead().getX(),
                             e.getHead().getY(),
                             e.getHead().getElementType()))
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList()), canAttackEnemy());
 
-            PathFinderResult enemyResult = getNextDirectionResult(enemyResults);
+            System.out.println("Enemies results : " + enemyResults);
 
-            return Optional.of(enemyResult);
-        } else {
-            List<PathFinderResult> appleAndGoldResults = getAllResults(world.getApplesAndGold());
-            PathFinderResult appleAndGoldResult = getNextDirectionResult(appleAndGoldResults);
-            return Optional.of(appleAndGoldResult);
-        }
+            PathFinderResult result = getNextDirectionResult(enemyResults);
+
+            if (result == null || result.getNextPoint() == null) {
+                List<PathPoint> targets = Stream.of(world.getApples(), world.getGold(), world.getFury())
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList());
+
+                List<PathFinderResult> appleAndGoldResults = getAllResults(targets, p -> true);
+
+                result = getNextDirectionResult(appleAndGoldResults);
+            }
+
+        return Optional.of(result);
     }
 
-    public List<PathFinderResult> getAllResults(List<PathPoint> pathPoints) {
+    public static Predicate<PathPoint> canAttackEnemy() {
+        return p -> world.getMySnake().getLength() > calculateEnemyLength(p) + 1
+                || world.getMySnake().getState().equals(SnakeState.FURY);
+    }
+
+    public List<PathFinderResult> getAllResults(List<PathPoint> pathPoints, Predicate<PathPoint> filter) {
         return pathPoints.stream()
+                .filter(filter)
                 .map(p -> finder.findSinglePath(p))
                 .collect(Collectors.toList());
     }
 
     private PathFinderResult getNextDirectionResult(List<PathFinderResult> results) {
+        System.out.println("Path finder result: " + results.stream()
+                .map(p -> p.getTargetElementType())
+                .collect(Collectors.toList()));
         int minDistance = Integer.MAX_VALUE;
         PathFinderResult result = null;
 

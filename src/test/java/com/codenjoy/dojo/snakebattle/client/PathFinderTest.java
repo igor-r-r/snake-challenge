@@ -51,7 +51,7 @@ public class PathFinderTest {
 
         world.updateWorldState(board);
 
-        TreeMap<Integer, List<PathPoint>> groupMapActual = world.getPathPointGroups();
+        TreeMap<Integer, List<PathPoint>> groupMapActual = world.getRegularPathPointGroups();
 
         assertEquals(2, groupMapActual.size());
         assertEquals(1, groupMapActual.get(5).size());

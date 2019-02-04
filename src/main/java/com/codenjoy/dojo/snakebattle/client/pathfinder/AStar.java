@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.generateChildren;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.WorldBuildHelper.buildPathPoint;
 
 public class AStar implements Finder {
 
@@ -28,6 +28,7 @@ public class AStar implements Finder {
         PathPoint startingPoint = buildPathPoint(me.getX(), me.getY(), Elements.HEAD_UP);
         openList.put(startingPoint, startingPoint);
 
+        //System.out.println("Open list: " + openList);
         // loop through open list
         while (!openList.isEmpty()) {
             // get current path point according to min F value

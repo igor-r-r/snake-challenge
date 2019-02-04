@@ -25,7 +25,6 @@ public enum PathPointPriority {
         return Arrays.stream(values()).filter(p -> element.equals(p.element)).findAny().orElse(EMPTY_OR_OBSTACLE);
     }
 
-
     public static boolean isPriorityHigher(Elements current, Elements previous) {
         return getByElementType(current).priority > getByElementType(previous).priority;
     }

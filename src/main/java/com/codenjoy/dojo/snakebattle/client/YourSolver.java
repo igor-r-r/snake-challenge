@@ -28,8 +28,11 @@ import com.codenjoy.dojo.client.WebSocketRunner;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.RandomDice;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.AStar;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.EnemyPathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.StonePathFinder;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * User: Igor Igor
@@ -50,21 +53,22 @@ public class YourSolver implements Solver<Board> {
 
     @Override
     public String get(Board board) {
+        long startTime = System.nanoTime();
         this.board = board;
         if (board.isGameOver()) return "";
         PathFinder.world.updateWorldState(board);
 
-        System.out.println("Me: " + board.getMe());
-        System.out.println("Invert: " + board.inversionY(board.getMe().getY()));
+        String direction = pathFinder.findPath();
 
-        return pathFinder.findPath();
+        System.out.println(TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
+        return direction;
     }
 
     public static void main(String[] args) {
         WebSocketRunner.runClient(
                 // paste here board page url from browser after registration
                 "https://game1.epam-bot-challenge.com.ua/codenjoy-contest/board/player/fordou37@gmail.com?code=1380899103789497",
-                new YourSolver(new RandomDice(), new StonePathFinder(new AStar())),
+                new YourSolver(new RandomDice(), new EnemyPathFinder(new AStar())),
                 new Board());
     }
 

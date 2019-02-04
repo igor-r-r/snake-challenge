@@ -5,10 +5,12 @@ import com.codenjoy.dojo.snakebattle.model.Elements;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
+@ToString
 public class PathPoint implements Comparable<PathPoint> {
 
     @EqualsAndHashCode.Include
