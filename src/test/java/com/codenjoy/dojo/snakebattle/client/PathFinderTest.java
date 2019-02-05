@@ -78,13 +78,12 @@ public class PathFinderTest {
 
         TreeMap<Integer, List<PathPoint>> groupMapActual = world.getRegularPathPointGroups();
 
-        assertEquals(2, groupMapActual.size());
-        assertEquals(1, groupMapActual.get(5).size());
-        assertEquals(1, groupMapActual.get(10).size());
-        assertEquals(4, groupMapActual.get(5).get(0).getX());
-        assertEquals(6, groupMapActual.get(5).get(0).getY());
-        assertEquals(7, groupMapActual.get(10).get(0).getX());
-        assertEquals(2, groupMapActual.get(10).get(0).getY());
+        assertEquals(1, groupMapActual.size());
+        assertEquals(2, groupMapActual.get(10).size());
+        assertEquals(4, groupMapActual.get(10).get(0).getX());
+        assertEquals(6, groupMapActual.get(10).get(0).getY());
+        assertEquals(7, groupMapActual.get(10).get(1).getX());
+        assertEquals(2, groupMapActual.get(10).get(1).getY());
 
     }
 

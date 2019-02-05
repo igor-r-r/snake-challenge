@@ -50,6 +50,7 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_UP;
 import static com.codenjoy.dojo.snakebattle.model.Elements.GOLD;
 import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_EVIL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_RIGHT;
+import static com.codenjoy.dojo.snakebattle.model.Elements.NONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -141,8 +142,8 @@ public class EnemyPathFinderTest {
 
         PathFinderResult resultActual = pathFinder.findNextDirection().get();
 
-        assertNotNull(resultActual.getTargetElementType());
-        assertEquals(GOLD, resultActual.getTargetElementType());
+        assertNotNull(resultActual.getTarget().getElementType());
+        assertEquals(GOLD, resultActual.getTarget().getElementType());
     }
 
     @Test
@@ -166,8 +167,8 @@ public class EnemyPathFinderTest {
         PathFinderResult resultActual = pathFinder.findNextDirection().get();
 
         assertNotNull(resultActual);
-        assertNotNull(resultActual.getTargetElementType());
-        assertEquals(ENEMY_HEAD_DOWN, resultActual.getTargetElementType());
+        assertNotNull(resultActual.getTarget().getElementType());
+        assertEquals(ENEMY_HEAD_DOWN, resultActual.getRealTarget().getElementType());
 
     }
 
@@ -229,16 +230,16 @@ public class EnemyPathFinderTest {
     public void shouldAttackEnemyIfMySnakeIsInFuryState() {
         Board board = board(
                 "☼☼☼☼☼☼☼☼☼☼☼" +
-                        "☼☼        ☼" +
-                        "☼☼        ☼" +
-                        "☼☼        ☼" +
-                        "☼☼ ╘♥     ☼" +
-                        "☼☼        ☼" +
-                        "☼☼ æ      ☼" +
-                        "☼☼ │      ☼" +
-                        "☼☼ ˅   ○$ ☼" +
-                        "☼☼        ☼" +
-                        "☼☼☼☼☼☼☼☼☼☼☼");
+                "☼☼        ☼" +
+                "☼☼        ☼" +
+                "☼☼        ☼" +
+                "☼☼ ╘♥     ☼" +
+                "☼☼        ☼" +
+                "☼☼ æ      ☼" +
+                "☼☼ │      ☼" +
+                "☼☼ ˅   ○$ ☼" +
+                "☼☼        ☼" +
+                "☼☼☼☼☼☼☼☼☼☼☼");
 
         world.updateWorldState(board);
         assertEquals(HEAD_EVIL, world.getBoard().getAt(world.getBoard().getMe()));
@@ -246,9 +247,11 @@ public class EnemyPathFinderTest {
         PathFinderResult resultActual = pathFinder.findNextDirection().get();
 
         assertNotNull(resultActual);
-        assertNotNull(resultActual.getTargetElementType());
+        assertNotNull(resultActual.getTarget().getElementType());
+        
+        assertEquals(1, resultActual.getTarget().getY());
 
-        assertEquals(ENEMY_HEAD_DOWN, resultActual.getTargetElementType());
+        //assertEquals(ENEMY_HEAD_DOWN, resultActual.getTarget().getElementType());
     }
 
     @Test
@@ -272,10 +275,11 @@ public class EnemyPathFinderTest {
         PathFinderResult resultActual = pathFinder.findNextDirection().get();
 
         assertNotNull(resultActual);
-        assertNotNull(resultActual.getTargetElementType());
+        assertNotNull(resultActual.getTarget().getElementType());
 
-        assertEquals(GOLD, resultActual.getTargetElementType());
+        assertEquals(GOLD, resultActual.getTarget().getElementType());
     }
+    
 
     @Test
     public void shouldNotHitEnemiesBody() {
@@ -317,9 +321,10 @@ public class EnemyPathFinderTest {
         PathFinderResult resultActual = pathFinder.findNextDirection().get();
 
         assertNotNull(resultActual);
-        assertNotNull(resultActual.getTargetElementType());
+        assertNotNull(resultActual.getTarget().getElementType());
 
-        assertEquals(ENEMY_HEAD_DOWN, resultActual.getTargetElementType());
+        assertEquals(ENEMY_HEAD_DOWN, resultActual.getRealTarget().getElementType());
+        assertEquals(NONE, resultActual.getTarget().getElementType());
         assertEquals(DOWN, resultActual.getDirection());
     }
 
@@ -362,9 +367,10 @@ public class EnemyPathFinderTest {
         PathFinderResult resultActual = pathFinder.findNextDirection().get();
 
         assertNotNull(resultActual);
-        assertNotNull(resultActual.getTargetElementType());
+        assertNotNull(resultActual.getTarget().getElementType());
 
-        assertEquals(ENEMY_HEAD_UP, resultActual.getTargetElementType());
+        assertEquals(ENEMY_HEAD_UP, resultActual.getRealTarget().getElementType());
+        assertEquals(NONE, resultActual.getTarget().getElementType());
         assertEquals(RIGHT, resultActual.getDirection());
     }
 }

@@ -39,27 +39,40 @@ import static com.codenjoy.dojo.services.Direction.LEFT;
 import static com.codenjoy.dojo.services.Direction.RIGHT;
 import static com.codenjoy.dojo.services.Direction.UP;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.childrenDirections;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyBody;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyHead;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyTail;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.isSnakeBody;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.myBody;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.myHead;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.myTail;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
-import static com.codenjoy.dojo.snakebattle.model.Elements.*;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_HORIZONTAL;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_LEFT_DOWN;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_LEFT_UP;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_RIGHT_DOWN;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_RIGHT_UP;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_VERTICAL;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_DOWN;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_EVIL;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_FLY;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_LEFT;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_RIGHT;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_SLEEP;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_UP;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_DOWN;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_LEFT;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_RIGHT;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_UP;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_INACTIVE;
 import static java.util.Set.of;
 
 public class SnakeLengthUtils {
 
     private static Map<Elements, Allowed> elementsMap = new HashMap<>();
 
-    //static int[] UP = {0, 1};
-    //static int[] DOWN = {0, -1};
-    //static int[] RIGHT = {1, 0};
-    //static int[] LEFT = {-1, 0};
+
 
     static class Allowed {
         private Set<Elements> allowedElements;

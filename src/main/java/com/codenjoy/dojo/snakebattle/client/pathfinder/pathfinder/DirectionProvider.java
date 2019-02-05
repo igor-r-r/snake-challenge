@@ -28,11 +28,11 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import static com.codenjoy.dojo.services.Direction.ACT;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.buildAct;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.buildAct;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canPassThrough;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.childrenDirections;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.shouldDropStone;
 
 public class DirectionProvider {
@@ -61,7 +61,7 @@ public class DirectionProvider {
         Point me = world.getBoard().getMe();
 
         for (int[] direction : childrenDirections) {
-            if (canPassThrough(world.getBoard(), me.getX() + direction[0], me.getY() + direction[1])) {
+            if (canPassThrough(me.getX() + direction[0], me.getY() + direction[1])) {
                 return getCloseDirection(me.getX(), me.getY(), me.getX() + direction[0], me.getY() + direction[1]);
             }
         }

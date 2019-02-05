@@ -96,7 +96,7 @@ public class World {
     }
 
     public void updateValuablePathPoints() {
-        valuablePathPoints = Stream.of(applesAndGold, apples, gold, fury, stones, flight)
+        valuablePathPoints = Stream.of(apples, gold, fury, stones, flight)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
     }
@@ -146,7 +146,6 @@ public class World {
         // TODO calculate length
         enemy.setDistance(calculateEstimatedDistance(me.getX(), me.getY(), enemyHead.getX(), enemyHead.getY()));
         enemy.setState(getStateByElement(enemyHead.getElementType()));
-        System.out.println("Enemy: " + enemy);
 
         return enemy;
     }

@@ -22,14 +22,11 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.util;
  * #L%
  */
 
-import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.Board;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import java.util.ArrayList;
@@ -37,10 +34,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static com.codenjoy.dojo.services.Direction.ACT;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.FURY;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils.calculateEnemyLength;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils.isMySnakeLonger;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_HORIZONTAL;
@@ -134,42 +129,34 @@ public class PathFinderUtils {
 
     public static final Elements[] optionalObstacles = {STONE};
 
-    public static Direction getCloseDirection(PathPoint from, PathPoint to) {
-        return getCloseDirection(from.getX(), from.getY(), to.getX(), to.getY());
-    }
 
-    public static Direction getCloseDirection(int fromX, int fromY, int toX, int toY) {
-        if (Math.abs(fromX - toX) + Math.abs(fromY - toY) == 1) {
-            if (fromX < toX) {
-                return Direction.RIGHT;
-            } else if (fromX > toX) {
-                return Direction.LEFT;
-            } else if (fromY < toY) {
-                return Direction.UP;
-            } else if (fromY > toY) {
-                return Direction.DOWN;
-            }
-        }
-
-        return Direction.RIGHT;
-
-    }
 
     public static int calculateEstimatedDistance(int currentX, int currentY, int targetX, int targetY) {
         return Math.abs(currentX - targetX)
                 + Math.abs(currentY - targetY);
     }
 
-    public static boolean canPassThrough(Board board, int targetX, int targetY) {
+    public static boolean canPassThrough(int targetX, int targetY) {
         if (targetX < 0 || targetX > 29 || targetY < 0 || targetY > 29) {
             return false;
         }
 
-        Elements targetElement = board.getAt(targetX, targetY);
+        Elements targetElement = world.getBoard().getAt(targetX, targetY);
         PathPoint targetPathPoint = buildPathPoint(targetX, targetY, targetElement);
-        Snake mySnake = world.getMySnake();
 
-        if (board.isBarrierAt(targetX, targetY)) {
+        return canPassThrough(targetPathPoint);
+
+    }
+
+    public static boolean canPassThrough(PathPoint targetPathPoint) {
+        if (!validatePathPoint(targetPathPoint)) {
+            return false;
+        }
+
+        Snake mySnake = world.getMySnake();
+        Elements targetElement = targetPathPoint.getElementType();
+
+        if (world.getBoard().isBarrierAt(targetPathPoint.getX(), targetPathPoint.getY())) {
             return false;
         }
 
@@ -256,7 +243,7 @@ public class PathFinderUtils {
             int childX = parent.getX() + direction[0];
             int childY = parent.getY() + direction[1];
 
-            if (!canPassThrough(board, childX, childY)) {
+            if (!canPassThrough(childX, childY)) {
                 continue;
             }
 
@@ -302,4 +289,7 @@ public class PathFinderUtils {
     }
 
 
+    public static boolean validatePathPoint(PathPoint pathPoint) {
+        return !(pathPoint == null || pathPoint.getX() < 0 || pathPoint.getX() > 29 || pathPoint.getY() < 0 || pathPoint.getY() > 29);
+    }
 }

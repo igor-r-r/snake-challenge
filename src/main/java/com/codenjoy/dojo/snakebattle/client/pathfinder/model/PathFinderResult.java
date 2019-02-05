@@ -43,6 +43,7 @@ public class PathFinderResult {
     private int distance;
     private PathPoint nextPoint;
     private Direction direction;
-    private Elements targetElementType;
+    private PathPoint target;
+    private PathPoint realTarget;
 
 }

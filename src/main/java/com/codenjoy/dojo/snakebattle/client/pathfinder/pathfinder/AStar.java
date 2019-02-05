@@ -108,7 +108,8 @@ public class AStar implements Searcher {
                         .reachable(true)
                         .distance(target.getG())
                         .nextPoint(current)
-                        .targetElementType(target.getElementType())
+                        .realTarget(target)
+                        .target(target)
                         .build();
             }
 
