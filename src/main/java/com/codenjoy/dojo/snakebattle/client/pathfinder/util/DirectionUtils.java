@@ -1,4 +1,4 @@
-package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
+package com.codenjoy.dojo.snakebattle.client.pathfinder.util;
 
 /*-
  * #%L
@@ -22,18 +22,18 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
  * #L%
  */
 
-import java.util.List;
+import com.codenjoy.dojo.services.Direction;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import static com.codenjoy.dojo.services.Direction.ACT;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-@ToString(callSuper = true)
-public class Enemy extends Snake {
+public class DirectionUtils {
 
-    private int distance;
-    private List<PathPoint> parts;
+    public static String buildAct(Direction direction, boolean isDirectionBefore) {
+        if (isDirectionBefore) {
+            return direction.toString() + ", " + ACT.toString();
+        } else {
+            return ACT.toString() + ", " + direction.toString();
+        }
+    }
 
 }

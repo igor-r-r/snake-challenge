@@ -1,14 +1,34 @@
-package com.codenjoy.dojo.snakebattle.client.pathfinder;
+package com.codenjoy.dojo.snakebattle.client.pathfinder.world;
+
+/*-
+ * #%L
+ * Codenjoy - it's a dojo-like platform from developers to developers.
+ * %%
+ * Copyright (C) 2018 - 2019 Codenjoy
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
 
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.Board;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -17,18 +37,18 @@ import java.util.stream.Stream;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.calculateEstimatedDistance;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.calculateSnakeLengthStupid;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.calculateTotalEnemyLengthStupid;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.enemyHead;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinderUtils.getGroup;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.WorldBuildHelper.toPathPointList;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.getStateByElement;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.calculateEstimatedDistance;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.calculateSnakeLengthStupid;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyHead;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.getGroup;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils.calculateEnemyLength;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.toPathPointList;
 import static com.codenjoy.dojo.snakebattle.model.Elements.APPLE;
 import static com.codenjoy.dojo.snakebattle.model.Elements.FLYING_PILL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.FURY_PILL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.GOLD;
 import static com.codenjoy.dojo.snakebattle.model.Elements.STONE;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 @Data
@@ -38,7 +58,6 @@ public class World {
     private Board board;
     private Snake mySnake = new Snake();
 
-    private int totalEnemyLength;
     private List<PathPoint> applesAndGold;
     private List<PathPoint> apples;
     private List<PathPoint> stones;
@@ -110,12 +129,10 @@ public class World {
     }
 
     private void updateMySnakeState() {
-        mySnake.setState(SnakeState.getStateByElement(board.getAt(board.getMe())));
+        mySnake.setState(getStateByElement(board.getAt(board.getMe())));
     }
 
     public void updateEnemies() {
-        setTotalEnemyLength(calculateTotalEnemyLengthStupid());
-
         this.enemies = toPathPointList(enemyHead).stream().map(this::toEnemy).collect(Collectors.toList());
     }
 
@@ -124,13 +141,21 @@ public class World {
         Point me = board.getMe();
 
         enemy.setHead(enemyHead);
-        enemy.setLength(SnakeLengthHelper.calculateEnemyLength(enemyHead)); // TODO calculate length
+        enemy.setParts(calculateEnemyLength(enemyHead));
+        enemy.setLength(enemy.getParts().size());
+        // TODO calculate length
         enemy.setDistance(calculateEstimatedDistance(me.getX(), me.getY(), enemyHead.getX(), enemyHead.getY()));
-        enemy.setState(SnakeState.getStateByElement(enemyHead.getElementType()));
+        enemy.setState(getStateByElement(enemyHead.getElementType()));
+        System.out.println("Enemy: " + enemy);
 
         return enemy;
     }
 
+    public Enemy getEnemySnake(PathPoint head) {
+        return enemies.stream().filter(enemy -> enemy.getHead().equals(head)).findFirst().orElse(null);
+    }
 
-
+    public Enemy getEnemyByPart(PathPoint part) {
+        return enemies.stream().filter(e -> e.getParts().contains(part)).findFirst().orElse(null);
+    }
 }

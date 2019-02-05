@@ -1,23 +1,48 @@
-package com.codenjoy.dojo.snakebattle.client.pathfinder;
+package com.codenjoy.dojo.snakebattle.client.pathfinder.util;
+
+/*-
+ * #%L
+ * Codenjoy - it's a dojo-like platform from developers to developers.
+ * %%
+ * Copyright (C) 2018 - 2019 Codenjoy
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
 
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.Board;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.codenjoy.dojo.services.Direction.ACT;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.FURY;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils.calculateEnemyLength;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils.isMySnakeLonger;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_HORIZONTAL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_LEFT_DOWN;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_LEFT_UP;
@@ -30,7 +55,6 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_LEFT_UP;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_RIGHT_DOWN;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_RIGHT_UP;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_VERTICAL;
-import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_DEAD;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_DOWN;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_EVIL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_FLY;
@@ -57,6 +81,7 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.TAIL_END_LEFT;
 import static com.codenjoy.dojo.snakebattle.model.Elements.TAIL_END_RIGHT;
 import static com.codenjoy.dojo.snakebattle.model.Elements.TAIL_END_UP;
 import static com.codenjoy.dojo.snakebattle.model.Elements.TAIL_INACTIVE;
+import static java.util.Arrays.asList;
 
 public class PathFinderUtils {
 
@@ -109,15 +134,19 @@ public class PathFinderUtils {
 
     public static final Elements[] optionalObstacles = {STONE};
 
-    public static Direction getCloseDirection(int headX, int headY, int targetX, int targetY) {
-        if (Math.abs(headX - targetX) + Math.abs(headY - targetY) == 1) {
-            if (headX < targetX) {
+    public static Direction getCloseDirection(PathPoint from, PathPoint to) {
+        return getCloseDirection(from.getX(), from.getY(), to.getX(), to.getY());
+    }
+
+    public static Direction getCloseDirection(int fromX, int fromY, int toX, int toY) {
+        if (Math.abs(fromX - toX) + Math.abs(fromY - toY) == 1) {
+            if (fromX < toX) {
                 return Direction.RIGHT;
-            } else if (headX > targetX) {
+            } else if (fromX > toX) {
                 return Direction.LEFT;
-            } else if (headY < targetY) {
+            } else if (fromY < toY) {
                 return Direction.UP;
-            } else if (headY > targetY) {
+            } else if (fromY > toY) {
                 return Direction.DOWN;
             }
         }
@@ -136,34 +165,62 @@ public class PathFinderUtils {
             return false;
         }
 
+        Elements targetElement = board.getAt(targetX, targetY);
+        PathPoint targetPathPoint = buildPathPoint(targetX, targetY, targetElement);
+        Snake mySnake = world.getMySnake();
+
         if (board.isBarrierAt(targetX, targetY)) {
             return false;
         }
 
         // TODO temporarily not allowed
-        if (Arrays.asList(myBody).contains(board.getAt(targetX, targetY))) {
+        if (isMySnakePart(targetElement)) {
             return false;
         }
 
         // TODO temporarily not allowed
-        if (Arrays.asList(myTail).contains(board.getAt(targetX, targetY))) {
+        if (isEnemySnakePart(targetElement)) {
+            Enemy enemy = world.getEnemyByPart(targetPathPoint);
+
+            if (!mySnake.isFury()) {
+                if (!asList(enemyHead).contains(targetElement)) {
+                    return false;
+                } else {
+                    return isMySnakeLonger(enemy);
+                }
+
+            } else {
+                if (enemy.isFury() && !isMySnakeLonger(enemy)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+
+        if (asList(enemyHead).contains(targetElement)
+                && isMySnakeLonger(targetPathPoint)) {
+            if (targetElement.equals(ENEMY_HEAD_EVIL)) {
+                return false;
+            }
+            if (asList(enemyHead).contains(targetElement)
+                    && !world.getMySnake().getState().equals(FURY)) {
+                return false;
+            }
+            if (world.getMySnake().getState().equals(FURY)) {
+                return true;
+            }
+        } else if (!world.getMySnake().getState().equals(FURY) && targetElement.equals(ENEMY_HEAD_EVIL)) {
             return false;
         }
 
-        // TODO temporarily not allowed
-        if (Arrays.asList(enemyBody).contains(board.getAt(targetX, targetY))) {
-            return false;
-        }
-
-        // TODO temporarily not allowed
-        if ((Arrays.asList(enemyHead).contains(board.getAt(targetX, targetY))
-                && world.getMySnake().getLength() < world.getTotalEnemyLength() + 2)
-                || board.getAt(targetX, targetY).equals(ENEMY_HEAD_EVIL)) {
+        if (targetElement.equals(ENEMY_HEAD_EVIL)
+                && !isMySnakeLonger(world.getEnemyByPart(targetPathPoint).getHead())) {
             return false;
         }
 
         // STONE is allowed if length is more than 3
-        if (Arrays.asList(STONE).contains(board.getAt(targetX, targetY)) && !canEatStone()) {
+        if (asList(STONE).contains(targetElement) && !canEatStone()) {
             return false;
         }
 
@@ -172,7 +229,7 @@ public class PathFinderUtils {
 
     public static boolean canEatStone() {
         return world.getMySnake().getLength() > 4
-                || world.getMySnake().getState().equals(SnakeState.FURY); //calculateEstimatedDistance(board.getMe().getX());
+                || world.getMySnake().getState().equals(FURY); //calculateEstimatedDistance(board.getMe().getX());
     }
 
 
@@ -180,14 +237,6 @@ public class PathFinderUtils {
         List<Point> head = world.getBoard().get(myHead);
         List<Point> body = world.getBoard().get(myBody);
         List<Point> tail = world.getBoard().get(myTail);
-
-        return head.size() + body.size() + tail.size();
-    }
-
-    public static int calculateTotalEnemyLengthStupid() {
-        List<Point> head = world.getBoard().get(enemyHead);
-        List<Point> body = world.getBoard().get(enemyBody);
-        List<Point> tail = world.getBoard().get(enemyTail);
 
         return head.size() + body.size() + tail.size();
     }
@@ -204,12 +253,12 @@ public class PathFinderUtils {
 
         for (int[] direction : childrenDirections) {
 
-            if (!canPassThrough(board, parent.getX() + direction[0], parent.getY() + direction[1])) {
-                continue;
-            }
-
             int childX = parent.getX() + direction[0];
             int childY = parent.getY() + direction[1];
+
+            if (!canPassThrough(board, childX, childY)) {
+                continue;
+            }
 
             PathPoint child = PathPoint.builder()
                     .x(childX)
@@ -230,12 +279,26 @@ public class PathFinderUtils {
         return GROUP_STEP * (estimatedDistance / GROUP_STEP) + GROUP_STEP;
     }
 
-    public static String buildAct(Direction direction, boolean isDirectionBefore) {
-        if (isDirectionBefore) {
-            return direction.toString() + ", " + ACT.toString();
-        } else {
-            return ACT.toString() + ", " + direction.toString();
-        }
+    public static boolean shouldDropStone(int nextX, int nextY) {
+        System.out.println("Stone check: " + world.getMySnake().getStoneCount());
+        System.out.println("Stone check: " + world.getMySnake().getState());
+        return (world.getBoard().getAt(nextX, nextY).equals(Elements.FURY_PILL)
+                || world.getMySnake().getLength() > 4
+                || world.getMySnake().getState().equals(FURY))
+                && world.getMySnake().getStoneCount() > 0;
+    }
+
+    public static boolean isMySnakePart(Elements targetElement) {
+        return asList(myHead).contains(targetElement)
+                || asList(myBody).contains(targetElement)
+                || asList(myTail).contains(targetElement);
+    }
+
+    public static boolean isEnemySnakePart(Elements targetElement) {
+        return asList(enemyHead).contains(targetElement)
+                || asList(enemyBody).contains(targetElement)
+                || asList(enemyTail).contains(targetElement);
+
     }
 
 

@@ -26,9 +26,10 @@ package com.codenjoy.dojo.snakebattle.client;
 import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.Direction;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.AStar;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinder;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.StonePathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,11 +50,13 @@ public class SolverTest {
 
     private Dice dice;
     private Solver ai;
+    private PathFinder pathFinder;
 
     @Before
     public void setup() {
+        pathFinder = new StonePathFinder(new AStar(), new DirectionProvider());
         dice = mock(Dice.class);
-        ai = new YourSolver(dice, new StonePathFinder(new AStar()));
+        ai = new YourSolver(dice, pathFinder);
     }
 
     private Board board(String board) {

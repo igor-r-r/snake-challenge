@@ -1,4 +1,4 @@
-package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
+package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
 
 /*-
  * #%L
@@ -22,18 +22,9 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
  * #L%
  */
 
-import java.util.List;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-@EqualsAndHashCode(callSuper = true)
-@Data
-@ToString(callSuper = true)
-public class Enemy extends Snake {
-
-    private int distance;
-    private List<PathPoint> parts;
-
+public interface Searcher {
+    PathFinderResult findSinglePath(PathPoint target);
 }

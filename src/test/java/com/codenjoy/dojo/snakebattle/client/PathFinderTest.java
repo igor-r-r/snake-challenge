@@ -1,10 +1,33 @@
 package com.codenjoy.dojo.snakebattle.client;
 
+/*-
+ * #%L
+ * Codenjoy - it's a dojo-like platform from developers to developers.
+ * %%
+ * Copyright (C) 2018 - 2019 Codenjoy
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.services.Dice;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.AStar;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinder;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.StonePathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 
@@ -15,7 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -23,11 +46,13 @@ public class PathFinderTest {
 
     private Dice dice;
     private Solver ai;
+    private PathFinder pathFinder;
 
     @Before
     public void setup() {
         dice = mock(Dice.class);
-        ai = new YourSolver(dice, new StonePathFinder(new AStar()));
+        pathFinder = new StonePathFinder(new AStar(), new DirectionProvider());
+        ai = new YourSolver(dice, pathFinder);
     }
 
     private Board board(String board) {
@@ -79,7 +104,6 @@ public class PathFinderTest {
                 "☼☼        ☼" +
                 "☼☼☼☼☼☼☼☼☼☼☼");
 
-        StonePathFinder pathFinder = new StonePathFinder(new AStar());
         world.updateWorldState(board);
         Optional<PathFinderResult> resultActual = pathFinder.findNextDirection();
 
@@ -102,7 +126,6 @@ public class PathFinderTest {
                 "☼☼        ☼" +
                 "☼☼☼☼☼☼☼☼☼☼☼");
 
-        PathFinder pathFinder = new StonePathFinder(new AStar());
         world.updateWorldState(board);
         Optional<PathFinderResult> resultActual = pathFinder.findNextDirection();
 
@@ -125,7 +148,6 @@ public class PathFinderTest {
                 "☼☼        ☼" +
                 "☼☼☼☼☼☼☼☼☼☼☼");
 
-        PathFinder pathFinder = new StonePathFinder(new AStar());
         world.updateWorldState(board);
         Optional<PathFinderResult> resultActual = pathFinder.findNextDirection();
 
