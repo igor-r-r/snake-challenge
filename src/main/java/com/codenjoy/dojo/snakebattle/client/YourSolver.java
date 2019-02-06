@@ -27,14 +27,27 @@ import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.client.WebSocketRunner;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.RandomDice;
+import com.codenjoy.dojo.services.hash.Hash;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.Strategy;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.EnemyPathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.Strategy.ENEMY;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.Strategy.STONE;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canAttackEnemy;
 
 /**
  * User: Igor Igor
@@ -44,13 +57,24 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFin
  */
 public class YourSolver implements Solver<Board> {
 
+    private static final String GAME_1 =  "https://game1.epam-bot-challenge.com.ua/codenjoy-contest/board/player/fordou37@gmail.com?code=1380899103789497";
+    private static final String GAME_2 =  "https://game2.epam-bot-challenge.com.ua/codenjoy-contest/board/player/fordou37@gmail.com?code=1380899103789497";
+    private static final String GAME_3 =  "https://game3.epam-bot-challenge.com.ua/codenjoy-contest/board/player/fordou37@gmail.com?code=1380899103789497";
+
+
     private Dice dice;
     private Board board;
     private PathFinder pathFinder;
 
+    private Map<Strategy, PathFinder> pathFinders = new HashMap<>();
+
+
     YourSolver(Dice dice, PathFinder pathFinder) {
         this.dice = dice;
         this.pathFinder = pathFinder;
+
+        pathFinders.put(ENEMY, new EnemyPathFinder(new AStar(), new DirectionProvider()));
+        pathFinders.put(STONE, new StonePathFinder(new AStar(), new DirectionProvider()));
     }
 
     @Override
@@ -60,16 +84,31 @@ public class YourSolver implements Solver<Board> {
         if (board.isGameOver()) return "";
         world.updateWorldState(board);
 
-        String direction = pathFinder.findPath();
+        String direction = pathFinders.get(chooseStrategy()).findPath();
 
         System.out.println(TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
         return direction;
     }
 
+    private Strategy chooseStrategy() {
+        List<Enemy> enemies = world.getEnemies();
+
+        System.out.println("Can attack: " + enemies.stream()
+                .map(e -> Boolean.toString(PathFinderUtils.canAttackEnemy(e.getHead())))
+                .collect(Collectors.joining(", ")));
+
+        //if (enemies.stream().anyMatch(e -> e.getDistance() < 10 && PathFinderUtils.canAttackEnemy(e.getHead()))) {
+            return ENEMY;
+        //} else {
+        //    return STONE;
+        //}
+
+    }
+
     public static void main(String[] args) {
         WebSocketRunner.runClient(
                 // paste here board page url from browser after registration
-                "https://game1.epam-bot-challenge.com.ua/codenjoy-contest/board/player/fordou37@gmail.com?code=1380899103789497",
+                GAME_1,
                 new YourSolver(new RandomDice(), new EnemyPathFinder(new AStar(), new DirectionProvider())),
                 new Board());
     }

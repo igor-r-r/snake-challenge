@@ -27,7 +27,6 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +36,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.isPriorityHigher;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinderPredicate.canAttackEnemy;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getEnemyDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getPathPointByDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canPassThrough;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
+import static java.util.Optional.ofNullable;
 
 public class EnemyPathFinder extends PathFinder {
 
@@ -49,20 +50,21 @@ public class EnemyPathFinder extends PathFinder {
         super(searcher, directionProvider);
     }
 
-    public Optional<PathFinderResult> findNextDirection() {
+    public Optional<PathFinderResult> findNextResult() {
+
+        System.out.println("ENEMY PATH FINDER");
 
         List<Enemy> enemies = world.getEnemies();
 
         List<PathFinderResult> enemyResults = getAllEnemyResults(enemies.stream()
-                .map(e -> buildPathPoint(
-                        e.getHead().getX(),
-                        e.getHead().getY(),
-                        e.getHead().getElementType()))
-                //.map(this::convertToProjectedHeadPathPoint)
-                .collect(Collectors.toList()), canAttackEnemy());
+                        .map(e -> buildPathPoint(
+                                e.getHead().getX(),
+                                e.getHead().getY(),
+                                e.getHead().getElementType()))
+                        .collect(Collectors.toList()),
+                canAttackEnemy());
 
-        System.out.println("Enemies results : " + enemyResults);
-
+        System.out.println("Enemy results: " + enemyResults.stream().map(PathFinderResult::getRealTarget).collect(Collectors.toList()));
         PathFinderResult result = getNextDirectionResult(enemyResults);
 
         if (result == null || result.getNextPoint() == null) {
@@ -72,10 +74,14 @@ public class EnemyPathFinder extends PathFinder {
 
             List<PathFinderResult> appleAndGoldResults = getAllPointsResults(targets);
 
+            System.out.println(
+                    "Apple and gold results: " + appleAndGoldResults.size() + ", " + appleAndGoldResults.stream().map(PathFinderResult::getRealTarget)
+                            .collect(Collectors.toList()));
+
             result = getNextDirectionResult(appleAndGoldResults);
         }
 
-        return Optional.of(result);
+        return ofNullable(result);
     }
 
     private PathPoint convertToProjectedHeadPathPoint(PathPoint currentPathPoint) {
@@ -93,11 +99,6 @@ public class EnemyPathFinder extends PathFinder {
 
         return projectedPathPoint;
 
-    }
-
-    public static Predicate<PathPoint> canAttackEnemy() {
-        return p -> (SnakeLengthUtils.isMySnakeLonger(p)
-                || world.getMySnake().isFury());
     }
 
     public List<PathFinderResult> getAllEnemyResults(List<PathPoint> pathPoints, Predicate<PathPoint> canAttackEnemy) {
@@ -120,11 +121,10 @@ public class EnemyPathFinder extends PathFinder {
     }
 
     private PathFinderResult getNextDirectionResult(List<PathFinderResult> results) {
-        System.out.println("Path finder result: " + results.stream()
-                .map(PathFinderResult::getRealTarget)
-                .map(PathPoint::getElementType)
-                .collect(Collectors.toList()));
-
+        //System.out.println("Path finder result: " + results.stream()
+        //        .map(PathFinderResult::getRealTarget)
+        //        .map(PathPoint::getElementType)
+        //        .collect(Collectors.toList()));
 
         int minDistance = Integer.MAX_VALUE;
         PathFinderResult result = null;

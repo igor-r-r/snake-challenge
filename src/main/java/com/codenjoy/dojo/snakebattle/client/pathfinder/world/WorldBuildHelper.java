@@ -22,6 +22,7 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.world;
  * #L%
  */
 
+import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority;
 import com.codenjoy.dojo.snakebattle.model.Elements;
@@ -37,6 +38,17 @@ public class WorldBuildHelper {
         return  world.getBoard().get(elements).stream()
                 .map(p -> buildPathPoint(p.getX(), p.getY(), world.getBoard().getAt(p)))
                 .collect(Collectors.toList());
+    }
+
+    public static PathPoint buildPathPoint(Point me) {
+        return buildPathPoint(me.getX(), me.getY());
+    }
+
+    public static PathPoint buildPathPoint(int x, int y) {
+        Point me = world.getBoard().getMe();
+        Elements headElement = world.getBoard().getAt(me);
+
+        return buildPathPoint(me.getX(), me.getY(), headElement);
     }
 
     public static PathPoint buildPathPoint(int x, int y, Elements elementType) {

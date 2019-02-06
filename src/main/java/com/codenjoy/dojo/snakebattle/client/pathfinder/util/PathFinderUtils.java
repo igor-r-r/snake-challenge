@@ -22,7 +22,6 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.util;
  * #L%
  */
 
-import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.Board;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
@@ -33,9 +32,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.FURY;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.BOARD_LOWER_BOUNDARY;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.BOARD_UPPER_BOUNDARY;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils.isMySnakeLonger;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_HORIZONTAL;
@@ -127,17 +129,13 @@ public class PathFinderUtils {
             ENEMY_TAIL_END_RIGHT,
             ENEMY_TAIL_INACTIVE};
 
-    public static final Elements[] optionalObstacles = {STONE};
-
-
-
     public static int calculateEstimatedDistance(int currentX, int currentY, int targetX, int targetY) {
         return Math.abs(currentX - targetX)
                 + Math.abs(currentY - targetY);
     }
 
     public static boolean canPassThrough(int targetX, int targetY) {
-        if (targetX < 0 || targetX > 29 || targetY < 0 || targetY > 29) {
+        if (isOutsideBoard(targetX, targetY)) {
             return false;
         }
 
@@ -148,12 +146,15 @@ public class PathFinderUtils {
 
     }
 
+    public static boolean isOutsideBoard(int targetX, int targetY) {
+        return targetX < BOARD_LOWER_BOUNDARY || targetX > BOARD_UPPER_BOUNDARY || targetY < BOARD_LOWER_BOUNDARY || targetY > BOARD_UPPER_BOUNDARY;
+    }
+
     public static boolean canPassThrough(PathPoint targetPathPoint) {
         if (!validatePathPoint(targetPathPoint)) {
             return false;
         }
 
-        Snake mySnake = world.getMySnake();
         Elements targetElement = targetPathPoint.getElementType();
 
         if (world.getBoard().isBarrierAt(targetPathPoint.getX(), targetPathPoint.getY())) {
@@ -167,38 +168,7 @@ public class PathFinderUtils {
 
         // TODO temporarily not allowed
         if (isEnemySnakePart(targetElement)) {
-            Enemy enemy = world.getEnemyByPart(targetPathPoint);
-
-            if (!mySnake.isFury()) {
-                if (!asList(enemyHead).contains(targetElement)) {
-                    return false;
-                } else {
-                    return isMySnakeLonger(enemy);
-                }
-
-            } else {
-                if (enemy.isFury() && !isMySnakeLonger(enemy)) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        }
-
-        if (asList(enemyHead).contains(targetElement)
-                && isMySnakeLonger(targetPathPoint)) {
-            if (targetElement.equals(ENEMY_HEAD_EVIL)) {
-                return false;
-            }
-            if (asList(enemyHead).contains(targetElement)
-                    && !world.getMySnake().getState().equals(FURY)) {
-                return false;
-            }
-            if (world.getMySnake().getState().equals(FURY)) {
-                return true;
-            }
-        } else if (!world.getMySnake().getState().equals(FURY) && targetElement.equals(ENEMY_HEAD_EVIL)) {
-            return false;
+            return canAttackEnemy(targetPathPoint);
         }
 
         if (targetElement.equals(ENEMY_HEAD_EVIL)
@@ -214,18 +184,29 @@ public class PathFinderUtils {
         return true;
     }
 
+    public static boolean canAttackEnemy(PathPoint pathPoint) {
+        Snake mySnake = world.getMySnake();
+        Enemy enemy = world.getEnemyByPart(pathPoint);
+
+        if (!mySnake.isFury()) {
+            if (!asList(enemyHead).contains(pathPoint.getElementType())) {
+                return false;
+            } else {
+                return isMySnakeLonger(enemy);
+            }
+
+        } else {
+            if (enemy.isFury() && !isMySnakeLonger(enemy)) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
     public static boolean canEatStone() {
         return world.getMySnake().getLength() > 4
                 || world.getMySnake().getState().equals(FURY); //calculateEstimatedDistance(board.getMe().getX());
-    }
-
-
-    public static int calculateSnakeLengthStupid() {
-        List<Point> head = world.getBoard().get(myHead);
-        List<Point> body = world.getBoard().get(myBody);
-        List<Point> tail = world.getBoard().get(myTail);
-
-        return head.size() + body.size() + tail.size();
     }
 
     public static boolean isSnakeBody(Elements element) {
@@ -267,8 +248,6 @@ public class PathFinderUtils {
     }
 
     public static boolean shouldDropStone(int nextX, int nextY) {
-        System.out.println("Stone check: " + world.getMySnake().getStoneCount());
-        System.out.println("Stone check: " + world.getMySnake().getState());
         return (world.getBoard().getAt(nextX, nextY).equals(Elements.FURY_PILL)
                 || world.getMySnake().getLength() > 4
                 || world.getMySnake().getState().equals(FURY))
@@ -288,8 +267,7 @@ public class PathFinderUtils {
 
     }
 
-
     public static boolean validatePathPoint(PathPoint pathPoint) {
-        return !(pathPoint == null || pathPoint.getX() < 0 || pathPoint.getX() > 29 || pathPoint.getY() < 0 || pathPoint.getY() > 29);
+        return !(pathPoint == null || isOutsideBoard(pathPoint.getX(), pathPoint.getY()));
     }
 }

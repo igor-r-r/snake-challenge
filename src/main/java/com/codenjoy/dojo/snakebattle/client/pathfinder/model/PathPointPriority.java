@@ -22,32 +22,49 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
  * #L%
  */
 
+import com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import java.util.Arrays;
+import java.util.Set;
+
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyHead;
+import static java.util.Set.of;
 
 public enum PathPointPriority {
 
     EMPTY_OR_OBSTACLE(0, null),
-    FLYING_PILL(1, Elements.FLYING_PILL),
-    FURY_PILL(2, Elements.FURY_PILL),
-    APPLE(3, Elements.APPLE),
-    GOLD(4, Elements.GOLD),
-    STONE(5, Elements.STONE);
+    FLYING_PILL(1, of(Elements.FLYING_PILL)),
+    FURY_PILL(2, of(Elements.FURY_PILL)),
+    APPLE(3, of(Elements.APPLE)),
+    GOLD(4, of(Elements.GOLD)),
+    STONE(5, of(Elements.STONE)),
+    ENEMY_HEAD(6, of(enemyHead));
 
     int priority;
-    Elements element;
+    Set<Elements> elements;
 
-    PathPointPriority(int priority, Elements element) {
+    PathPointPriority(int priority, Set<Elements> elements) {
         this.priority = priority;
-        this.element = element;
+        this.elements = elements;
     }
 
     public static PathPointPriority getByElementType(Elements element) {
-        return Arrays.stream(values()).filter(p -> element.equals(p.element)).findAny().orElse(EMPTY_OR_OBSTACLE);
+        return Arrays.stream(values())
+                .filter(p -> p.elements != null && p.elements.contains(element))
+                .findAny()
+                .orElse(EMPTY_OR_OBSTACLE);
     }
 
     public static boolean isPriorityHigher(Elements current, Elements previous) {
         return getByElementType(current).priority > getByElementType(previous).priority;
+    }
+
+    public static Integer getPriority(Elements element) {
+        return Arrays.stream(values())
+                .filter(p -> p.elements != null && p.elements.contains(element))
+                .map(p -> p.priority)
+                .findAny()
+                .orElse(0);
     }
 }

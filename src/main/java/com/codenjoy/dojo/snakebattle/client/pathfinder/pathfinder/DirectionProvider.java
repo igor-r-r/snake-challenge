@@ -27,7 +27,11 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static com.codenjoy.dojo.services.Direction.ACT;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.isPriorityHigher;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.buildAct;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
@@ -38,6 +42,7 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUti
 public class DirectionProvider {
 
     public String getFinalDirectionString(PathFinderResult result) {
+        System.out.println("Final result: " + result);
         if (result != null) {
             if (result.getDirection().equals(ACT) || result.getNextPoint() == null) {
                 return anyDirection().toString();
@@ -67,6 +72,40 @@ public class DirectionProvider {
         }
 
         return Direction.RIGHT;
+    }
+
+    public List<PathFinderResult> resolveResults(List<PathFinderResult> results) {
+        int minDistance = Integer.MAX_VALUE;
+        PathFinderResult result = null;
+        //List<PathFinderResult> finalResults = results.stream().filter(r -> r.getDistance())
+
+        for (PathFinderResult currentResult : results) {
+            if (currentResult.getDistance() < minDistance ||
+                    ((currentResult.getDistance() < minDistance + 2)
+                            && checkPriorityHigher(currentResult, result))) {
+
+                minDistance = currentResult.getDistance();
+
+                if (currentResult.getNextPoint() == null) {
+                    continue;
+                }
+
+                Point me = world.getBoard().getMe();
+
+                Direction direction = getCloseDirection(me.getX(), me.getY(),
+                        currentResult.getNextPoint().getX(), currentResult.getNextPoint().getY());
+
+                currentResult.setDirection(direction);
+                //finalResults.add(currentResult);
+            }
+        }
+
+        return Arrays.asList(result);
+    }
+
+    private boolean checkPriorityHigher(PathFinderResult current, PathFinderResult previous) {
+        return previous == null
+                || isPriorityHigher(current.getTarget().getElementType(), previous.getTarget().getElementType());
     }
 
 }

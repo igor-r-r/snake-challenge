@@ -24,12 +24,16 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.world;
 
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.Board;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Area;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.AreaCoordinates;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,11 +42,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.getStateByElement;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.buildAreas;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.calculateEstimatedDistance;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.calculateSnakeLengthStupid;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyHead;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.getGroup;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils.calculateEnemyLength;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils.calculateSnakeLengthStupid;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.toPathPointList;
 import static com.codenjoy.dojo.snakebattle.model.Elements.APPLE;
 import static com.codenjoy.dojo.snakebattle.model.Elements.FLYING_PILL;
@@ -58,6 +64,7 @@ public class World {
     private Board board;
     private Snake mySnake = new Snake();
 
+    private Map<AreaCoordinates, Area> areas;
     private List<PathPoint> applesAndGold;
     private List<PathPoint> apples;
     private List<PathPoint> stones;
@@ -80,6 +87,11 @@ public class World {
         updatePathPointGroups();
         updateMySnake();
         updateEnemies();
+        updateAreas();
+    }
+
+    private void updateAreas() {
+        areas = buildAreas(mySnake.getHead());
     }
 
     public void updateWorldState() {
@@ -119,6 +131,7 @@ public class World {
     }
 
     private void updateMySnake() {
+        mySnake.setHead(buildPathPoint(board.getMe()));
         updateMySnakeState();
         updateMySnakeLength();
 

@@ -22,14 +22,12 @@ package com.codenjoy.dojo.snakebattle.client;
  * #L%
  */
 
-import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.services.Dice;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,21 +40,13 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFin
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
-public class PathFinderTest {
-
-    private Dice dice;
-    private Solver ai;
-    private PathFinder pathFinder;
+public class PathFinderTest extends BaseTest {
 
     @Before
     public void setup() {
         dice = mock(Dice.class);
         pathFinder = new StonePathFinder(new AStar(), new DirectionProvider());
         ai = new YourSolver(dice, pathFinder);
-    }
-
-    private Board board(String board) {
-        return (Board) new Board().forString(board);
     }
 
     @Test
@@ -104,7 +94,7 @@ public class PathFinderTest {
                 "☼☼☼☼☼☼☼☼☼☼☼");
 
         world.updateWorldState(board);
-        Optional<PathFinderResult> resultActual = pathFinder.findNextDirection();
+        Optional<PathFinderResult> resultActual = pathFinder.findNextResult();
 
         assertEquals(3, resultActual.get().getDistance());
 
@@ -126,7 +116,7 @@ public class PathFinderTest {
                 "☼☼☼☼☼☼☼☼☼☼☼");
 
         world.updateWorldState(board);
-        Optional<PathFinderResult> resultActual = pathFinder.findNextDirection();
+        Optional<PathFinderResult> resultActual = pathFinder.findNextResult();
 
         assertEquals(9, resultActual.get().getDistance());
 
@@ -148,7 +138,7 @@ public class PathFinderTest {
                 "☼☼☼☼☼☼☼☼☼☼☼");
 
         world.updateWorldState(board);
-        Optional<PathFinderResult> resultActual = pathFinder.findNextDirection();
+        Optional<PathFinderResult> resultActual = pathFinder.findNextResult();
 
         assertEquals(10, resultActual.get().getDistance());
 

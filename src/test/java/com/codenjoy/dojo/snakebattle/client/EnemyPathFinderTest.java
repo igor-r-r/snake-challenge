@@ -22,22 +22,19 @@ package com.codenjoy.dojo.snakebattle.client;
  * #L%
  */
 
-import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.services.Dice;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.EnemyPathFinder;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import static com.codenjoy.dojo.services.Direction.DOWN;
@@ -55,21 +52,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
-public class EnemyPathFinderTest {
-
-    private Dice dice;
-    private Solver ai;
-    private PathFinder pathFinder;
+public class EnemyPathFinderTest extends BaseTest {
 
     @Before
     public void setup() {
         pathFinder = new EnemyPathFinder(new AStar(), new DirectionProvider());
         dice = mock(Dice.class);
         ai = new YourSolver(dice, pathFinder);
-    }
-
-    private Board board(String board) {
-        return (Board) new Board().forString(board);
     }
 
     @Test
@@ -140,7 +129,7 @@ public class EnemyPathFinderTest {
         EnemyPathFinder pathFinder = new EnemyPathFinder(new AStar(), new DirectionProvider());
         world.updateWorldState(board);
 
-        PathFinderResult resultActual = pathFinder.findNextDirection().get();
+        PathFinderResult resultActual = pathFinder.findNextResult().get();
 
         assertNotNull(resultActual.getTarget().getElementType());
         assertEquals(GOLD, resultActual.getTarget().getElementType());
@@ -164,7 +153,7 @@ public class EnemyPathFinderTest {
         EnemyPathFinder pathFinder = new EnemyPathFinder(new AStar(), new DirectionProvider());
         world.updateWorldState(board);
 
-        PathFinderResult resultActual = pathFinder.findNextDirection().get();
+        PathFinderResult resultActual = pathFinder.findNextResult().get();
 
         assertNotNull(resultActual);
         assertNotNull(resultActual.getTarget().getElementType());
@@ -244,7 +233,7 @@ public class EnemyPathFinderTest {
         world.updateWorldState(board);
         assertEquals(HEAD_EVIL, world.getBoard().getAt(world.getBoard().getMe()));
 
-        PathFinderResult resultActual = pathFinder.findNextDirection().get();
+        PathFinderResult resultActual = pathFinder.findNextResult().get();
 
         assertNotNull(resultActual);
         assertNotNull(resultActual.getTarget().getElementType());
@@ -272,7 +261,7 @@ public class EnemyPathFinderTest {
         world.updateWorldState(board);
         assertEquals(HEAD_RIGHT, world.getBoard().getAt(world.getBoard().getMe()));
 
-        PathFinderResult resultActual = pathFinder.findNextDirection().get();
+        PathFinderResult resultActual = pathFinder.findNextResult().get();
 
         assertNotNull(resultActual);
         assertNotNull(resultActual.getTarget().getElementType());
@@ -318,7 +307,7 @@ public class EnemyPathFinderTest {
         world.updateWorldState(board);
         assertEquals(HEAD_RIGHT, world.getBoard().getAt(world.getBoard().getMe()));
 
-        PathFinderResult resultActual = pathFinder.findNextDirection().get();
+        PathFinderResult resultActual = pathFinder.findNextResult().get();
 
         assertNotNull(resultActual);
         assertNotNull(resultActual.getTarget().getElementType());
@@ -364,7 +353,7 @@ public class EnemyPathFinderTest {
         world.updateWorldState(board);
         assertEquals(HEAD_RIGHT, world.getBoard().getAt(world.getBoard().getMe()));
 
-        PathFinderResult resultActual = pathFinder.findNextDirection().get();
+        PathFinderResult resultActual = pathFinder.findNextResult().get();
 
         assertNotNull(resultActual);
         assertNotNull(resultActual.getTarget().getElementType());

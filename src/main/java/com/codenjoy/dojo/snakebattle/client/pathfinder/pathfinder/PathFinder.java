@@ -44,11 +44,11 @@ public abstract class PathFinder {
     protected Searcher searcher;
     protected DirectionProvider directionProvider;
 
-    public abstract Optional<PathFinderResult> findNextDirection();
+    public abstract Optional<PathFinderResult> findNextResult();
 
     // calculate all possible paths and return direction
     public String findPath() {
-        PathFinderResult result = findNextDirection().orElse(null);
+        PathFinderResult result = findNextResult().orElse(null);
         return directionProvider.getFinalDirectionString(result);
     }
 

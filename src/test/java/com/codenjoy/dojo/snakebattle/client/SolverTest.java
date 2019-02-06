@@ -46,21 +46,13 @@ import static org.mockito.Mockito.when;
  *         Затем создавай свои тесты, улучшай бота и проверяй что не испортил предыдущие достижения.
  */
 
-public class SolverTest {
-
-    private Dice dice;
-    private Solver ai;
-    private PathFinder pathFinder;
+public class SolverTest extends BaseTest {
 
     @Before
     public void setup() {
         pathFinder = new StonePathFinder(new AStar(), new DirectionProvider());
         dice = mock(Dice.class);
         ai = new YourSolver(dice, pathFinder);
-    }
-
-    private Board board(String board) {
-        return (Board) new Board().forString(board);
     }
 
     @Test

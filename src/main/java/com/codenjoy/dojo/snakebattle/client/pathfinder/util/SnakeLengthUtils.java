@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.codenjoy.dojo.services.Direction.DOWN;
 import static com.codenjoy.dojo.services.Direction.LEFT;
@@ -183,19 +184,7 @@ public class SnakeLengthUtils {
     }
 
     public static int calculateSnakeLengthStupid() {
-        List<Point> head = world.getBoard().get(myHead);
-        List<Point> body = world.getBoard().get(myBody);
-        List<Point> tail = world.getBoard().get(myTail);
-
-        return head.size() + body.size() + tail.size();
-    }
-
-    public static int calculateTotalEnemyLengthStupid() {
-        List<Point> head = world.getBoard().get(enemyHead);
-        List<Point> body = world.getBoard().get(enemyBody);
-        List<Point> tail = world.getBoard().get(enemyTail);
-
-        return head.size() + body.size() + tail.size();
+        return world.getBoard().get(Stream.of(myHead, myBody, myTail).flatMap(Stream::of).toArray(Elements[]::new)).size();
     }
 
     private static boolean isAllowedPart(Elements child, Elements parent, Direction direction) {
