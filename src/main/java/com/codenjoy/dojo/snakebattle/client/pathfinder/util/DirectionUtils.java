@@ -51,6 +51,7 @@ public class DirectionUtils {
 
     public static Map<Elements, Direction> enemyHeadToDirectionMap = new HashMap<>();
     public static Map<Direction, int[]> directionToCoordsMap = new HashMap<>();
+    public static Map<int[], Direction> coordsToDirectionMap = new HashMap<>();
     public static Map<Direction, Direction[]> directionToOppositeMap = new HashMap<>();
 
 
@@ -64,6 +65,11 @@ public class DirectionUtils {
         directionToCoordsMap.put(DOWN, DOWN_COORDS);
         directionToCoordsMap.put(RIGHT, RIGHT_COORDS);
         directionToCoordsMap.put(LEFT, LEFT_COORDS);
+
+        coordsToDirectionMap.put(UP_COORDS, UP);
+        coordsToDirectionMap.put(DOWN_COORDS, DOWN);
+        coordsToDirectionMap.put(RIGHT_COORDS, RIGHT);
+        coordsToDirectionMap.put(LEFT_COORDS, LEFT);
 
         directionToOppositeMap.put(UP, new Direction[]{RIGHT, DOWN});
         directionToOppositeMap.put(DOWN, new Direction[]{RIGHT, UP});
@@ -80,20 +86,24 @@ public class DirectionUtils {
         return getCloseDirection(from.getX(), from.getY(), to.getX(), to.getY());
     }
 
+    public static Direction getDirection(int... coords) {
+        return coordsToDirectionMap.get(coords) != null ? coordsToDirectionMap.get(coords) : RIGHT;
+    }
+
     public static Direction getCloseDirection(int fromX, int fromY, int toX, int toY) {
         if (Math.abs(fromX - toX) + Math.abs(fromY - toY) == 1) {
             if (fromX < toX) {
-                return Direction.RIGHT;
+                return RIGHT;
             } else if (fromX > toX) {
-                return Direction.LEFT;
+                return LEFT;
             } else if (fromY < toY) {
-                return Direction.UP;
+                return UP;
             } else if (fromY > toY) {
-                return Direction.DOWN;
+                return DOWN;
             }
         }
 
-        return Direction.RIGHT;
+        return RIGHT;
     }
 
     public static Direction getEnemyDirection(Elements head) {

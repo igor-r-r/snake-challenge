@@ -87,7 +87,7 @@ public class StonePathFinder extends PathFinder {
         for (Map.Entry<Integer, List<PathPoint>> group : world.getRegularPathPointGroups().entrySet()) {
 
             if (group.getValue() != null) {
-                PathFinderResult result = getNextDirectionResult(getGroupResults(group.getValue()));
+                PathFinderResult result = directionProvider.getNextResult(getGroupResults(group.getValue()));
                 if (result != null && result.getNextPoint() != null) {
                     return Optional.of(result);
 
@@ -102,29 +102,7 @@ public class StonePathFinder extends PathFinder {
         Stream<PathFinderResult> stream = pathPoints.stream()
                 .map(p -> searcher.findSinglePath(p));
 
-        System.out.println(pathPoints);
-
         return stream.collect(Collectors.toList());
-    }
-
-    private PathFinderResult getNextDirectionResult(List<PathFinderResult> results) {
-        int minDistance = Integer.MAX_VALUE;
-        PathFinderResult result = null;
-
-        for (PathFinderResult currentResult : results) {
-            if (currentResult.getDistance() < minDistance) {
-
-                minDistance = currentResult.getDistance();
-
-                if (currentResult.getNextPoint() == null) {
-                    continue;
-                }
-
-                result = currentResult;
-            }
-        }
-
-        return result;
     }
 
 

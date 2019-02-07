@@ -60,6 +60,11 @@ public enum PathPointPriority {
         return getByElementType(current).priority > getByElementType(previous).priority;
     }
 
+    public static boolean checkPriorityHigher(PathFinderResult current, PathFinderResult previous) {
+        return previous == null
+                || isPriorityHigher(current.getTarget().getElementType(), previous.getTarget().getElementType());
+    }
+
     public static Integer getPriority(Elements element) {
         return Arrays.stream(values())
                 .filter(p -> p.elements != null && p.elements.contains(element))
@@ -67,4 +72,6 @@ public enum PathPointPriority {
                 .findAny()
                 .orElse(0);
     }
+
+
 }

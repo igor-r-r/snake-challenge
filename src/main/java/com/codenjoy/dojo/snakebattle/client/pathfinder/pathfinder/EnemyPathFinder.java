@@ -34,14 +34,12 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.isPriorityHigher;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinderPredicate.canAttackEnemy;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getEnemyDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getPathPointByDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canPassThrough;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 
 public class EnemyPathFinder extends PathFinder {
 
@@ -64,7 +62,7 @@ public class EnemyPathFinder extends PathFinder {
                 canAttackEnemy());
 
         System.out.println("Enemy results: " + enemyResults.stream().map(PathFinderResult::getRealTarget).collect(Collectors.toList()));
-        PathFinderResult result = getNextDirectionResult(enemyResults);
+        PathFinderResult result = directionProvider.getNextResult(enemyResults);
 
         if (result == null || result.getNextPoint() == null) {
             List<PathPoint> targets = Stream.of(world.getApples(), world.getGold(), world.getFury())
@@ -73,11 +71,7 @@ public class EnemyPathFinder extends PathFinder {
 
             List<PathFinderResult> appleAndGoldResults = getAllPointsResults(targets);
 
-            System.out.println(
-                    "Apple and gold results: " + appleAndGoldResults.size() + ", " + appleAndGoldResults.stream().map(PathFinderResult::getRealTarget)
-                            .collect(Collectors.toList()));
-
-            result = getNextDirectionResult(appleAndGoldResults);
+            result = directionProvider.getNextResult(appleAndGoldResults);
         }
 
         return ofNullable(result);
@@ -118,30 +112,4 @@ public class EnemyPathFinder extends PathFinder {
                 .map(p -> searcher.findSinglePath(p))
                 .collect(Collectors.toList());
     }
-
-    private PathFinderResult getNextDirectionResult(List<PathFinderResult> results) {
-        int min = results.stream()
-                .mapToInt(PathFinderResult::getDistance)
-                .min().orElse(Integer.MAX_VALUE);
-
-        PathFinderResult result = null;
-
-        results = results.stream()
-                .filter(p -> p.getDistance() >= min && p.getDistance() < min + 2)
-                .collect(toList());
-
-        for (PathFinderResult currentResult : results) {
-            if (checkPriorityHigher(currentResult, result)) {
-                result = currentResult;
-            }
-        }
-
-        return result;
-    }
-
-    private boolean checkPriorityHigher(PathFinderResult current, PathFinderResult previous) {
-        return previous == null
-                || isPriorityHigher(current.getTarget().getElementType(), previous.getTarget().getElementType());
-    }
-
 }

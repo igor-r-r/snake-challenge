@@ -27,13 +27,13 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
-import java.util.Comparator;
 import java.util.List;
 
 import static com.codenjoy.dojo.services.Direction.ACT;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.checkPriorityHigher;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.buildDirection;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getOppositeDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canPassThrough;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.childrenDirections;
@@ -72,7 +72,7 @@ public class DirectionProvider {
 
         for (int[] direction : childrenDirections) {
             if (canPassThrough(me.getX() + direction[0], me.getY() + direction[1])) {
-                return getCloseDirection(me.getX(), me.getY(), me.getX() + direction[0], me.getY() + direction[1]).toString();
+                return getDirection(direction).toString();
             }
         }
 
@@ -89,19 +89,27 @@ public class DirectionProvider {
                 .mapToInt(PathFinderResult::getDistance)
                 .min().orElse(Integer.MAX_VALUE);
 
-        System.out.println(withNextPoint);
+        PathFinderResult result = null;
 
-        return withNextPoint.stream()
-                .filter(p -> p.getDistance() == min)
-                .max(Comparator.comparingInt(PathFinderResult::getWeight))
-                .orElse(null);
+        results = results.stream()
+                .filter(p -> p.getDistance() >= min && p.getDistance() < min + 2)
+                .collect(toList());
+
+        for (PathFinderResult currentResult : results) {
+            if (checkPriorityHigher(currentResult, result)) {
+                result = currentResult;
+            }
+        }
+
+        // TODO weight
+        return result;
     }
 
     public String furyDirection() {
-        //if (Arrays.asList(myTail).contains(world.getMySnake().getPreviousHead()))
-        if (world.getMySnake().isFury() && world.getMySnake().getFuryCounter() < 9) {
+        if (world.getMySnake().isFury()
+                && world.getMySnake().getFuryCounter() < 9
+                && world.getMySnake().getFuryCounter() > 0) {
             Direction[] turnAroundDirection = getOppositeDirection(world.getMySnake().getDirection());
-            //world.getMySnake().changeStoneCount(-1);
             System.out.println("Fury: counter: " + world.getMySnake().getFuryCounter() + ", stones: " + world.getMySnake().getStoneCount());
             return buildDirection(turnAroundDirection[0], turnAroundDirection[1], ACT);
         }

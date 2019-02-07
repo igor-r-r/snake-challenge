@@ -39,7 +39,6 @@ import lombok.ToString;
 @ToString
 public class PathFinderResult {
 
-    private boolean reachable;
     private int distance = Integer.MAX_VALUE;
     private int weight;
     private PathPoint nextPoint;

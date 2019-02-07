@@ -131,7 +131,6 @@ public class AStar implements Searcher {
                 Snake me = world.getMySnake();
 
                 return PathFinderResult.builder()
-                        .reachable(true)
                         .distance(target.getG())
                         .nextPoint(current)
                         .realTarget(target)
