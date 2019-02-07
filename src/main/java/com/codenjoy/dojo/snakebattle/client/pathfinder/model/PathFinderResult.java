@@ -23,8 +23,8 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
  */
 
 import com.codenjoy.dojo.services.Direction;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
-import com.codenjoy.dojo.snakebattle.model.Elements;
+
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,10 +40,12 @@ import lombok.ToString;
 public class PathFinderResult {
 
     private boolean reachable;
-    private int distance;
+    private int distance = Integer.MAX_VALUE;
+    private int weight;
     private PathPoint nextPoint;
     private Direction direction;
     private PathPoint target;
     private PathPoint realTarget;
+    private List<PathPoint> allValuables;
 
 }

@@ -244,7 +244,7 @@ public class EnemyPathFinderTest extends BaseTest {
     }
 
     @Test
-    public void shouldoNtAttackEnemyIfMySnakeIsNotInFuryState() {
+    public void shouldoNotAttackEnemyIfMySnakeIsNotInFuryState() {
         Board board = board(
                 "☼☼☼☼☼☼☼☼☼☼☼" +
                 "☼☼        ☼" +
@@ -361,5 +361,33 @@ public class EnemyPathFinderTest extends BaseTest {
         assertEquals(ENEMY_HEAD_UP, resultActual.getRealTarget().getElementType());
         assertEquals(NONE, resultActual.getTarget().getElementType());
         assertEquals(RIGHT, resultActual.getDirection());
+    }
+
+    @Test
+    public void shouldFindMostValuablePathToEnemy() {
+        Board board = board(
+                "☼☼☼☼☼☼☼☼☼☼☼" +
+                "☼☼        ☼" +
+                "☼☼     ╘♥ ☼" +
+                "☼☼        ☼" +
+                "☼☼    $   ☼" +
+                "☼☼        ☼" +
+                "☼☼ æ  ○   ☼" +
+                "☼☼ │      ☼" +
+                "☼☼ ˅   ○$ ☼" +
+                "☼☼        ☼" +
+                "☼☼☼☼☼☼☼☼☼☼☼");
+
+        world.updateWorldState(board);
+        assertEquals(HEAD_EVIL, world.getBoard().getAt(world.getBoard().getMe()));
+
+        PathFinderResult resultActual = pathFinder.findNextResult().get();
+
+        assertNotNull(resultActual);
+        assertNotNull(resultActual.getTarget().getElementType());
+
+        assertEquals(7, resultActual.getWeight());
+
+        //assertEquals(ENEMY_HEAD_DOWN, resultActual.getTarget().getElementType());
     }
 }

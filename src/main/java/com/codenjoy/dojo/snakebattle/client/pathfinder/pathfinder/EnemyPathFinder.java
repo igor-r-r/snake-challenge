@@ -23,7 +23,6 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
  */
 
 import com.codenjoy.dojo.services.Direction;
-import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
@@ -37,12 +36,12 @@ import java.util.stream.Stream;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.isPriorityHigher;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinderPredicate.canAttackEnemy;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getEnemyDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getPathPointByDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canPassThrough;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 public class EnemyPathFinder extends PathFinder {
 
@@ -121,32 +120,18 @@ public class EnemyPathFinder extends PathFinder {
     }
 
     private PathFinderResult getNextDirectionResult(List<PathFinderResult> results) {
-        //System.out.println("Path finder result: " + results.stream()
-        //        .map(PathFinderResult::getRealTarget)
-        //        .map(PathPoint::getElementType)
-        //        .collect(Collectors.toList()));
+        int min = results.stream()
+                .mapToInt(PathFinderResult::getDistance)
+                .min().orElse(Integer.MAX_VALUE);
 
-        int minDistance = Integer.MAX_VALUE;
         PathFinderResult result = null;
 
+        results = results.stream()
+                .filter(p -> p.getDistance() >= min && p.getDistance() < min + 2)
+                .collect(toList());
+
         for (PathFinderResult currentResult : results) {
-            if (currentResult.getDistance() < minDistance ||
-                    ((currentResult.getDistance() < minDistance + 2)
-                            && checkPriorityHigher(currentResult, result))) {
-
-                minDistance = currentResult.getDistance();
-
-                if (currentResult.getNextPoint() == null) {
-                    currentResult.setDirection(directionProvider.anyDirection());
-                    return currentResult;
-                }
-
-                Point me = world.getBoard().getMe();
-
-                Direction direction = getCloseDirection(me.getX(), me.getY(),
-                        currentResult.getNextPoint().getX(), currentResult.getNextPoint().getY());
-
-                currentResult.setDirection(direction);
+            if (checkPriorityHigher(currentResult, result)) {
                 result = currentResult;
             }
         }

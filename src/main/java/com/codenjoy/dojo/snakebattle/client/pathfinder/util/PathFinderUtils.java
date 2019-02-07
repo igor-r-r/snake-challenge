@@ -216,7 +216,7 @@ public class PathFinderUtils {
     }
 
 
-    public static List<PathPoint> generateChildren(Board board, PathPoint parent, PathPoint target) {
+    public static List<PathPoint> generateChildren(PathPoint parent, PathPoint target) {
         List<PathPoint> children = new ArrayList<>();
 
         for (int[] direction : childrenDirections) {
@@ -228,14 +228,20 @@ public class PathFinderUtils {
                 continue;
             }
 
+            int g = parent.getG() + 1;
+            int h = calculateEstimatedDistance(childX, childY, target.getX(), target.getY());
+            int f = g + h;
+            Elements elementType = world.getBoard().getAt(childX, childY);
+
             PathPoint child = PathPoint.builder()
                     .x(childX)
                     .y(childY)
+                    .g(g)
+                    .h(g)
+                    .f(f)
                     .parent(parent)
-                    .g(parent.getG() + 1)
-                    .h(calculateEstimatedDistance(childX, childY, target.getX(), target.getY()))
+                    .elementType(elementType)
                     .build();
-            child.setF(child.getG() + child.getH());
 
             children.add(child);
         }
@@ -249,7 +255,7 @@ public class PathFinderUtils {
 
     public static boolean shouldDropStone(int nextX, int nextY) {
         return (world.getBoard().getAt(nextX, nextY).equals(Elements.FURY_PILL)
-                || world.getMySnake().getLength() > 4
+                //|| world.getMySnake().getLength() > 4
                 || world.getMySnake().getState().equals(FURY))
                 && world.getMySnake().getStoneCount() > 0;
     }

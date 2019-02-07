@@ -24,15 +24,13 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.util;
 
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
-import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import static com.codenjoy.dojo.services.Direction.ACT;
 import static com.codenjoy.dojo.services.Direction.DOWN;
 import static com.codenjoy.dojo.services.Direction.LEFT;
 import static com.codenjoy.dojo.services.Direction.RIGHT;
@@ -53,6 +51,8 @@ public class DirectionUtils {
 
     public static Map<Elements, Direction> enemyHeadToDirectionMap = new HashMap<>();
     public static Map<Direction, int[]> directionToCoordsMap = new HashMap<>();
+    public static Map<Direction, Direction[]> directionToOppositeMap = new HashMap<>();
+
 
     static {
         enemyHeadToDirectionMap.put(ENEMY_HEAD_UP, UP);
@@ -64,14 +64,16 @@ public class DirectionUtils {
         directionToCoordsMap.put(DOWN, DOWN_COORDS);
         directionToCoordsMap.put(RIGHT, RIGHT_COORDS);
         directionToCoordsMap.put(LEFT, LEFT_COORDS);
+
+        directionToOppositeMap.put(UP, new Direction[]{RIGHT, DOWN});
+        directionToOppositeMap.put(DOWN, new Direction[]{RIGHT, UP});
+        directionToOppositeMap.put(RIGHT, new Direction[]{DOWN, LEFT});
+        directionToOppositeMap.put(LEFT, new Direction[]{DOWN, RIGHT});
+
     }
 
-    public static String buildAct(Direction direction, boolean isDirectionBefore) {
-        if (isDirectionBefore) {
-            return direction.toString() + ", " + ACT.toString();
-        } else {
-            return ACT.toString() + ", " + direction.toString();
-        }
+    public static String buildDirection(Direction... directions) {
+        return Arrays.stream(directions).map(Direction::toString).collect(Collectors.joining(", "));
     }
 
     public static Direction getCloseDirection(PathPoint from, PathPoint to) {
@@ -109,6 +111,10 @@ public class DirectionUtils {
         Elements nextElement = world.getBoard().getAt(nextX, nextY);
 
         return buildPathPoint(nextX, nextY, nextElement);
+    }
+
+    public static Direction[] getOppositeDirection(Direction direction) {
+        return directionToOppositeMap.get(direction);
     }
 
 }

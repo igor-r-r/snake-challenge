@@ -48,6 +48,14 @@ public abstract class PathFinder {
 
     // calculate all possible paths and return direction
     public String findPath() {
+        if (world.getMySnake().isFury() && world.getMySnake().getStoneCount() > 0) {
+            System.out.println("FURY MODE! State: " + world.getMySnake().getState() );
+            System.out.println("FURY MODE! Stone count: " + world.getMySnake().getStoneCount() );
+            return directionProvider.furyDirection();
+        }
+
+        System.out.println("State: " + world.getMySnake().getState() );
+        System.out.println("Stone count: " + world.getMySnake().getStoneCount() );
         PathFinderResult result = findNextResult().orElse(null);
         return directionProvider.getFinalDirectionString(result);
     }

@@ -28,6 +28,7 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
+import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -144,6 +145,46 @@ public class PathFinderTest extends BaseTest {
 
     }
 
+    @Test
+    public void shouldFindNextTargetCorrectly() {
+        Board board = board(
+                  "☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼"
+                + "☼☼          ●                ☼"
+                + "☼#                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼     ☼☼☼☼☼                 ☼"
+                + "☼☼     ☼              ●      ☼"
+                + "☼#     ☼☼☼  ◄═╕   ☼☼☼☼#      ☼"
+                + "☼☼     ☼        ● ☼   ☼  ●   ☼"
+                + "☼☼     ☼☼☼☼#      ☼☼☼☼#      ☼"
+                + "☼☼                ☼          ☼"
+                + "☼☼                ☼          ☼"
+                + "☼☼                           ☼"
+                + "☼#                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼        ☼☼☼                ☼"
+                + "☼☼       ☼  ☼    ●○          ☼"
+                + "☼☼      ☼☼☼☼#     ☼☼   ☼#   æ☼"
+                + "☼☼      ☼   ☼   ● ☼ ☼ ☼ ☼   │☼"
+                + "☼#      ☼   ☼     ☼  ☼○ ☼   │☼"
+                + "☼☼         ○      ☼     ☼   │☼"
+                + "☼☼     ●     ©    ☼┌───┐☼┌──┘☼"
+                + "☼☼                <┘   └─┘   ☼"
+                + "☼☼                           ☼"
+                + "☼☼                           ☼"
+                + "☼#                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼               ©           ☼"
+                + "☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼");
+
+        world.updateWorldState(board);
+        Optional<PathFinderResult> resultActual = pathFinder.findNextResult();
+
+        assertEquals(Elements.APPLE, resultActual.get().getTarget().getElementType());
+
+    }
 
 
 }

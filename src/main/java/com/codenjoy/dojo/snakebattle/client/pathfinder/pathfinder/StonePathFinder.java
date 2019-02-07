@@ -10,20 +10,18 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import com.codenjoy.dojo.services.Direction;
-import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 
@@ -32,8 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 
 public class StonePathFinder extends PathFinder {
 
@@ -82,15 +78,20 @@ public class StonePathFinder extends PathFinder {
                 - no code repeat
                 - easy behavior switch
                 - check all operations for null and stuff
+
+          TODO choose most valuable path
          */
 
-
-
         System.out.println("STONE PATH FINDER");
+
         for (Map.Entry<Integer, List<PathPoint>> group : world.getRegularPathPointGroups().entrySet()) {
 
             if (group.getValue() != null) {
-                return Optional.ofNullable(getNextDirectionResult(getGroupResults(group.getValue())));
+                PathFinderResult result = getNextDirectionResult(getGroupResults(group.getValue()));
+                if (result != null && result.getNextPoint() != null) {
+                    return Optional.of(result);
+
+                }
             }
         }
 
@@ -111,7 +112,6 @@ public class StonePathFinder extends PathFinder {
         PathFinderResult result = null;
 
         for (PathFinderResult currentResult : results) {
-
             if (currentResult.getDistance() < minDistance) {
 
                 minDistance = currentResult.getDistance();
@@ -119,16 +119,13 @@ public class StonePathFinder extends PathFinder {
                 if (currentResult.getNextPoint() == null) {
                     continue;
                 }
-                Point me = world.getBoard().getMe();
 
-                Direction direction = getCloseDirection(me.getX(), me.getY(),
-                        currentResult.getNextPoint().getX(), currentResult.getNextPoint().getY());
-                currentResult.setDirection(direction);
                 result = currentResult;
             }
         }
 
         return result;
     }
+
 
 }

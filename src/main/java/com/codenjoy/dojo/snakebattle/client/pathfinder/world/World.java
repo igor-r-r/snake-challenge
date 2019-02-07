@@ -29,7 +29,6 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.AreaCoordinates;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +40,11 @@ import java.util.stream.Stream;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import static com.codenjoy.dojo.services.Direction.RIGHT;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.FURY;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.getStateByElement;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.buildAreas;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.calculateEstimatedDistance;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyHead;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.getGroup;
@@ -131,10 +133,20 @@ public class World {
     }
 
     private void updateMySnake() {
+        mySnake.setPreviousHead(mySnake.getHead());
         mySnake.setHead(buildPathPoint(board.getMe()));
+        updateMySnakeDirection();
         updateMySnakeState();
         updateMySnakeLength();
 
+    }
+
+    private void updateMySnakeDirection() {
+        if (mySnake.getPreviousHead() != null) {
+            mySnake.setDirection(getCloseDirection(mySnake.getPreviousHead(), mySnake.getHead()));
+        } else {
+            mySnake.setDirection(RIGHT);
+        }
     }
 
     private void updateMySnakeLength() {
@@ -143,6 +155,13 @@ public class World {
 
     private void updateMySnakeState() {
         mySnake.setState(getStateByElement(board.getAt(board.getMe())));
+        if (FURY.equals(mySnake.getState())) {
+            mySnake.setFuryCounter(mySnake.getFuryCounter() + 1);
+            System.out.println("Fury incremented: " + mySnake.getFuryCounter());
+        }
+        if (mySnake.getFuryCounter() > 9) {
+            mySnake.setFuryCounter(0);
+        }
     }
 
     public void updateEnemies() {

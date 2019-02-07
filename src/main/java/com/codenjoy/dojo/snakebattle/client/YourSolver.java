@@ -27,27 +27,21 @@ import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.client.WebSocketRunner;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.RandomDice;
-import com.codenjoy.dojo.services.hash.Hash;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.Strategy;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.EnemyPathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.Strategy.ENEMY;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.Strategy.STONE;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.Strategy.chooseStrategy;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canAttackEnemy;
 
 /**
  * User: Igor Igor
@@ -82,28 +76,21 @@ public class YourSolver implements Solver<Board> {
         long startTime = System.nanoTime();
         this.board = board;
         if (board.isGameOver()) return "";
+
         world.updateWorldState(board);
 
-        String direction = pathFinders.get(chooseStrategy()).findPath();
+        String direction = "";
+        try {
+            direction = pathFinders.get(chooseStrategy()).findPath();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         System.out.println(TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
         return direction;
     }
 
-    private Strategy chooseStrategy() {
-        List<Enemy> enemies = world.getEnemies();
 
-        System.out.println("Can attack: " + enemies.stream()
-                .map(e -> Boolean.toString(PathFinderUtils.canAttackEnemy(e.getHead())))
-                .collect(Collectors.joining(", ")));
-
-        //if (enemies.stream().anyMatch(e -> e.getDistance() < 10 && PathFinderUtils.canAttackEnemy(e.getHead()))) {
-            return ENEMY;
-        //} else {
-        //    return STONE;
-        //}
-
-    }
 
     public static void main(String[] args) {
         WebSocketRunner.runClient(
