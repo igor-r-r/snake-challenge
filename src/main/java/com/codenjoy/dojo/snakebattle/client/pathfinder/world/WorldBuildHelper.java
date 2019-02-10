@@ -45,10 +45,9 @@ public class WorldBuildHelper {
     }
 
     public static PathPoint buildPathPoint(int x, int y) {
-        Point me = world.getBoard().getMe();
-        Elements headElement = world.getBoard().getAt(me);
+        Elements headElement = world.getBoard().getAt(x, y);
 
-        return buildPathPoint(me.getX(), me.getY(), headElement);
+        return buildPathPoint(x, y, headElement);
     }
 
     public static PathPoint buildPathPoint(int x, int y, Elements elementType) {

@@ -25,7 +25,7 @@ package com.codenjoy.dojo.snakebattle.client;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.AStar;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
 import com.codenjoy.dojo.snakebattle.model.Elements;
@@ -47,7 +47,7 @@ public class PathFinderTest extends BaseTest {
     public void setup() {
         dice = mock(Dice.class);
         pathFinder = new StonePathFinder(new AStar(), new DirectionProvider());
-        ai = new YourSolver(dice, pathFinder);
+        ai = new YourSolver();
     }
 
     @Test

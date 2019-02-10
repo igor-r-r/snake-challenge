@@ -27,45 +27,17 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
-import java.util.List;
-
 import static com.codenjoy.dojo.services.Direction.ACT;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.checkPriorityHigher;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.buildDirection;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.childrenDirections;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getOppositeDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canPassThrough;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.childrenDirections;
-import static java.util.stream.Collectors.toList;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.isMySnakePart;
+import static com.codenjoy.dojo.snakebattle.model.Elements.STONE;
 
 public class DirectionProvider {
-
-    public String getFinalDirectionString(PathFinderResult result) {
-        System.out.println("Final result: " + result);
-        if (result != null) {
-            if (result.getDirection().equals(ACT) || result.getNextPoint() == null) {
-                return anyDirection();
-            }
-
-            System.out.println("Next point: " + result.getNextPoint());
-            if (Elements.STONE.equals(result.getNextPoint().getElementType())) {
-                world.getMySnake().changeStoneCount(1);
-            }
-
-            if (Elements.STONE.equals(result.getNextPoint().getElementType())) {
-                world.getMySnake().setFuryCounter(1);
-            }
-
-            //if (shouldDropStone(result.getNextPoint().getX(), result.getNextPoint().getY())) {
-            //    world.getMySnake().changeStoneCount(-1);
-            //    return buildDirection(ACT, result.getDirection());
-            //}
-            return result.getDirection().toString();
-        } else {
-            return anyDirection();
-        }
-    }
 
     public String anyDirection() {
         Point me = world.getBoard().getMe();
@@ -76,35 +48,18 @@ public class DirectionProvider {
             }
         }
 
-        Direction[] opposite = getOppositeDirection(world.getMySnake().getDirection());
+        for (int[] direction : childrenDirections) {
+            Elements element = world.getBoard().getAt(me.getX() + direction[0], me.getY() + direction[1]);
 
-        return buildDirection(opposite[0], opposite[1]);
-    }
-
-    public PathFinderResult getNextResult(List<PathFinderResult> results) {
-        List<PathFinderResult> withNextPoint = results.stream()
-                .filter(r -> r.getNextPoint() != null).collect(toList());
-
-        int min = withNextPoint.stream()
-                .mapToInt(PathFinderResult::getDistance)
-                .min().orElse(Integer.MAX_VALUE);
-
-        PathFinderResult result = null;
-
-        results = results.stream()
-                .filter(p -> p.getDistance() >= min && p.getDistance() < min + 2)
-                .collect(toList());
-
-        for (PathFinderResult currentResult : results) {
-            if (checkPriorityHigher(currentResult, result)) {
-                result = currentResult;
+            if (isMySnakePart(element)) {
+                return getDirection(direction).toString();
             }
         }
 
-        // TODO weight
-        return result;
+        return ACT(0);
     }
 
+    @Deprecated
     public String furyDirection() {
         if (world.getMySnake().isFury()
                 && world.getMySnake().getFuryCounter() < 9
@@ -115,5 +70,34 @@ public class DirectionProvider {
         }
 
         return anyDirection();
+    }
+
+    public String getFinalDirectionString(PathFinderResult result) {
+        System.out.println("Final result: " + result);
+        if (result != null) {
+            if (result.getDirection().equals(ACT) || result.getNextPoint() == null) {
+                return anyDirection();
+            }
+
+            if (STONE.equals(result.getNextPoint().getElementType())) {
+                world.getMySnake().changeStoneCount(1);
+            }
+
+            if (STONE.equals(result.getNextPoint().getElementType())) {
+                world.getMySnake().setFuryCounter(1);
+            }
+
+            if (!canPassThrough(result.getNextPoint())) {
+                return Direction.ACT(0);
+            }
+
+            if (world.getMySnake().isFury()) {
+                return buildDirection(result.getDirection(), ACT);
+            }
+
+            return result.getDirection().toString();
+        } else {
+            return anyDirection();
+        }
     }
 }

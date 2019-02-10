@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.AREA_SIZE;
 
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Data
 @AllArgsConstructor
 @Builder

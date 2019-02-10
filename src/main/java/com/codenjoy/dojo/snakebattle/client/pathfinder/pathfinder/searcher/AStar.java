@@ -1,4 +1,4 @@
-package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
+package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher;
 
 /*-
  * #%L
@@ -27,24 +27,25 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
-import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.generateChildren;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
+import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_UP;
 
 public class AStar implements Searcher {
 
     @Override
-    public PathFinderResult findSinglePath(PathPoint target) {
-        PathFinderResult result = new PathFinderResult();
+    public Optional<PathFinderResult> findSinglePath(PathPoint target) {
+        PathFinderResult result = null;
 
         Map<PathPoint, PathPoint> openList = new HashMap<>();
         Map<PathPoint, PathPoint> closedList = new HashMap<>();
@@ -52,12 +53,11 @@ public class AStar implements Searcher {
         Point me = world.getBoard().getMe();
 
         // add head coordinates as starting point
-        PathPoint startingPoint = buildPathPoint(me.getX(), me.getY(), Elements.HEAD_UP);
+        PathPoint startingPoint = buildPathPoint(me.getX(), me.getY(), HEAD_UP);
         openList.put(startingPoint, startingPoint);
 
         //System.out.println("Open list: " + openList);
         // loop through open list
-        System.out.print("Priorities: ");
         while (!openList.isEmpty()) {
             // get current path point according to min F value
             PathPoint current = openList.keySet().stream().min(Comparator.comparing(PathPoint::getF)).orElse(null);
@@ -67,7 +67,6 @@ public class AStar implements Searcher {
 
             // adding current point to closed list
             closedList.put(current, current);
-            System.out.print(PathPointPriority.getPriority(current.getElementType()) + ", ");
 
             // check if open list is empty
             if (current == null) {
@@ -77,7 +76,7 @@ public class AStar implements Searcher {
             // check if current path point is a target point and return successful result if it's true
             if (current.equals(target)) {
                 current.setElementType(target.getElementType());
-                return calculatePathResult(current, startingPoint);
+                return Optional.ofNullable(calculatePathResult(current, startingPoint));
             }
 
             // generate left, right, up and down path points with all parameters
@@ -102,7 +101,7 @@ public class AStar implements Searcher {
             }
         }
 
-        return result;
+        return Optional.ofNullable(result);
     }
 
     //public List<PathPoint> sortAccordingToEnemyDirection() {
@@ -121,12 +120,15 @@ public class AStar implements Searcher {
 
     // get PathFinderResult with direction for the next move
     public PathFinderResult calculatePathResult(PathPoint target, PathPoint startingPoint) {
+
         PathPoint current = target;
 
         int weight = 0;
         List<PathPoint> allValuables = new ArrayList<>();
 
         while (current.getParent() != null) {
+            weight += PathPointPriority.getPriority(current.getElementType());
+
             if (current.getParent().equals(startingPoint)) {
                 Snake me = world.getMySnake();
 
@@ -142,7 +144,6 @@ public class AStar implements Searcher {
                         .build();
             }
 
-            weight += PathPointPriority.getPriority(current.getElementType());
             if (PathPointPriority.getPriority(current.getElementType()) != 0) {
                 allValuables.add(current);
             }

@@ -22,30 +22,34 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
  * #L%
  */
 
-import com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import java.util.Arrays;
 import java.util.Set;
 
+import lombok.Getter;
+
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyHead;
 import static java.util.Set.of;
 
+@Getter
 public enum PathPointPriority {
 
-    EMPTY_OR_OBSTACLE(0, null),
-    FLYING_PILL(1, of(Elements.FLYING_PILL)),
-    FURY_PILL(2, of(Elements.FURY_PILL)),
-    APPLE(3, of(Elements.APPLE)),
-    GOLD(4, of(Elements.GOLD)),
-    STONE(5, of(Elements.STONE)),
-    ENEMY_HEAD(6, of(enemyHead));
+    EMPTY_OR_OBSTACLE(0, 0, null),
+    FLYING_PILL(1, 0, of(Elements.FLYING_PILL)),
+    FURY_PILL(7, 0, of(Elements.FURY_PILL)),
+    APPLE(2, 1, of(Elements.APPLE)),
+    GOLD(5, 10, of(Elements.GOLD)),
+    STONE(2, 5, of(Elements.STONE)),
+    ENEMY_HEAD(6, 0, of(enemyHead));
 
     int priority;
+    int reward;
     Set<Elements> elements;
 
-    PathPointPriority(int priority, Set<Elements> elements) {
+    PathPointPriority(int priority, int reward, Set<Elements> elements) {
         this.priority = priority;
+        this.reward = reward;
         this.elements = elements;
     }
 
@@ -69,6 +73,14 @@ public enum PathPointPriority {
         return Arrays.stream(values())
                 .filter(p -> p.elements != null && p.elements.contains(element))
                 .map(p -> p.priority)
+                .findAny()
+                .orElse(0);
+    }
+
+    public static Integer getReward(Elements element) {
+        return Arrays.stream(values())
+                .filter(p -> p.elements != null && p.elements.contains(element))
+                .map(p -> p.reward)
                 .findAny()
                 .orElse(0);
     }

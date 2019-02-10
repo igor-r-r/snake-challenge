@@ -44,6 +44,8 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_UP;
 
 public class DirectionUtils {
 
+    public static final int[][] childrenDirections = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
+
     static int[] UP_COORDS = {0, 1};
     static int[] DOWN_COORDS = {0, -1};
     static int[] RIGHT_COORDS = {1, 0};

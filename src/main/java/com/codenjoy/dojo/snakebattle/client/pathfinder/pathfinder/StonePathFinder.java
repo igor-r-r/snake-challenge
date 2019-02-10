@@ -24,17 +24,16 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
 
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.Searcher;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class StonePathFinder extends PathFinder {
 
-    public StonePathFinder(Searcher searcher, DirectionProvider directionProvider) {
-        super(searcher, directionProvider);
+    public StonePathFinder(Searcher searcher) {
+        super(searcher);
     }
 
     public Optional<PathFinderResult> findNextResult() {
@@ -87,7 +86,7 @@ public class StonePathFinder extends PathFinder {
         for (Map.Entry<Integer, List<PathPoint>> group : world.getRegularPathPointGroups().entrySet()) {
 
             if (group.getValue() != null) {
-                PathFinderResult result = directionProvider.getNextResult(getGroupResults(group.getValue()));
+                PathFinderResult result = getNextResult(getResults(group.getValue()));
                 if (result != null && result.getNextPoint() != null) {
                     return Optional.of(result);
 
@@ -97,13 +96,5 @@ public class StonePathFinder extends PathFinder {
 
         return Optional.empty();
     }
-
-    public List<PathFinderResult> getGroupResults(List<PathPoint> pathPoints) {
-        Stream<PathFinderResult> stream = pathPoints.stream()
-                .map(p -> searcher.findSinglePath(p));
-
-        return stream.collect(Collectors.toList());
-    }
-
 
 }

@@ -26,7 +26,7 @@ import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AStar;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.AStar;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.EnemyPathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils;
@@ -58,7 +58,7 @@ public class EnemyPathFinderTest extends BaseTest {
     public void setup() {
         pathFinder = new EnemyPathFinder(new AStar(), new DirectionProvider());
         dice = mock(Dice.class);
-        ai = new YourSolver(dice, pathFinder);
+        ai = new YourSolver();
     }
 
     @Test

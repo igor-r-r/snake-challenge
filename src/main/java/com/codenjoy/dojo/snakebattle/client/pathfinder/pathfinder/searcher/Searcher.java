@@ -1,4 +1,4 @@
-package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
+package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher;
 
 /*-
  * #%L
@@ -25,6 +25,8 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 
+import java.util.Optional;
+
 public interface Searcher {
-    PathFinderResult findSinglePath(PathPoint target);
+    Optional<PathFinderResult> findSinglePath(PathPoint target);
 }

@@ -18,6 +18,7 @@ public class Area {
     @EqualsAndHashCode.Include
     private AreaCoordinates coordinates;
 
+    private Reward reward;
     private int weight;
     private int distance;
     private boolean hasEnemy;

@@ -24,6 +24,8 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
 
 import com.codenjoy.dojo.services.Direction;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -37,6 +39,7 @@ public class Snake {
     protected PathPoint previousHead;
     protected PathPoint head;
     protected Direction direction;
+    private List<PathPoint> parts;
 
     public int changeStoneCount(int delta) {
         int newCount = stoneCount + delta;

@@ -22,8 +22,6 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
  * #L%
  */
 
-import java.util.List;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -34,6 +32,5 @@ import lombok.ToString;
 public class Enemy extends Snake {
 
     private int distance;
-    private List<PathPoint> parts;
 
 }

@@ -10,20 +10,19 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.util;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import com.codenjoy.dojo.snakebattle.client.Board;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
+import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
 import com.codenjoy.dojo.snakebattle.model.Elements;
@@ -32,13 +31,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.FURY;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.BOARD_LOWER_BOUNDARY;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.BOARD_UPPER_BOUNDARY;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.SnakeLengthUtils.isMySnakeLonger;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.childrenDirections;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getEnemyDirection;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getPathPointByDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_HORIZONTAL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_LEFT_DOWN;
@@ -52,6 +52,7 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_LEFT_UP;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_RIGHT_DOWN;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_RIGHT_UP;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_BODY_VERTICAL;
+import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_DEAD;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_DOWN;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_EVIL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_FLY;
@@ -83,7 +84,6 @@ import static java.util.Arrays.asList;
 public class PathFinderUtils {
 
     public static final int GROUP_STEP = 10;
-    public static final int[][] childrenDirections = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
 
     public static final Elements[] myHead = {HEAD_DOWN,
             HEAD_LEFT,
@@ -118,7 +118,7 @@ public class PathFinderUtils {
             ENEMY_HEAD_LEFT,
             ENEMY_HEAD_RIGHT,
             ENEMY_HEAD_UP,
-            //ENEMY_HEAD_DEAD,   // этот раунд противник проиграл
+            ENEMY_HEAD_DEAD,   // этот раунд противник проиграл
             ENEMY_HEAD_EVIL,   // противник скушал таблетку ярости
             ENEMY_HEAD_FLY,    // противник скушал таблетку полета
             ENEMY_HEAD_SLEEP};
@@ -134,25 +134,48 @@ public class PathFinderUtils {
                 + Math.abs(currentY - targetY);
     }
 
-    public static boolean canPassThrough(int targetX, int targetY) {
-        if (isOutsideBoard(targetX, targetY)) {
+    public static boolean canEnemyPassThrough(int enemyX, int enemyY, int targetX, int targetY) {
+        if (validatePathPoint(targetX, targetY)) {
             return false;
         }
 
-        Elements targetElement = world.getBoard().getAt(targetX, targetY);
-        PathPoint targetPathPoint = buildPathPoint(targetX, targetY, targetElement);
+        PathPoint targetPathPoint = buildPathPoint(targetX, targetY);
+        Elements targetElement = targetPathPoint.getElementType();
 
-        return canPassThrough(targetPathPoint);
+        if (world.getBoard().isBarrierAt(targetPathPoint.getX(), targetPathPoint.getY())) {
+            return false;
+        }
 
+        // TODO temporarily not allowed
+        if (isMySnakePart(targetElement)) {
+            return canAttack(targetPathPoint, world.getMySnake().getHead());
+        }
+
+        // TODO temporarily not allowed
+        if (isEnemySnakePart(targetElement)) {
+            return canAttack(world.getMySnake().getHead(), targetPathPoint);
+        }
+
+        // STONE is allowed if length is more than 3
+        if (STONE.equals(targetElement) && !canEatStone()) {
+            return false;
+        }
+
+        return true;
     }
 
-    public static boolean isOutsideBoard(int targetX, int targetY) {
-        return targetX < BOARD_LOWER_BOUNDARY || targetX > BOARD_UPPER_BOUNDARY || targetY < BOARD_LOWER_BOUNDARY || targetY > BOARD_UPPER_BOUNDARY;
+    public static boolean canPassThrough(int targetX, int targetY) {
+        return validatePathPoint(targetX, targetY) && canPassThrough(buildPathPoint(targetX, targetY));
     }
+
 
     public static boolean canPassThrough(PathPoint targetPathPoint) {
         if (!validatePathPoint(targetPathPoint)) {
             return false;
+        }
+
+        if (targetPathPoint.getElementType() == null) {
+            targetPathPoint.setElementType(world.getBoard().getAt(targetPathPoint.getX(), targetPathPoint.getY()));
         }
 
         Elements targetElement = targetPathPoint.getElementType();
@@ -168,40 +191,36 @@ public class PathFinderUtils {
 
         // TODO temporarily not allowed
         if (isEnemySnakePart(targetElement)) {
-            return canAttackEnemy(targetPathPoint);
-        }
-
-        if (targetElement.equals(ENEMY_HEAD_EVIL)
-                && !isMySnakeLonger(world.getEnemyByPart(targetPathPoint).getHead())) {
-            return false;
+            return canAttack(world.getMySnake().getHead(), targetPathPoint);
         }
 
         // STONE is allowed if length is more than 3
-        if (asList(STONE).contains(targetElement) && !canEatStone()) {
+        if (STONE.equals(targetElement) && !canEatStone()) {
             return false;
         }
 
         return true;
     }
 
-    public static boolean canAttackEnemy(PathPoint pathPoint) {
-        Snake mySnake = world.getMySnake();
-        Enemy enemy = world.getEnemyByPart(pathPoint);
+    public static boolean canAttackEnemy(PathPoint enemyHead) {
+        return canAttack(world.getMySnake().getHead(), enemyHead);
+    }
 
-        if (!mySnake.isFury()) {
-            if (!asList(enemyHead).contains(pathPoint.getElementType())) {
-                return false;
-            } else {
-                return isMySnakeLonger(enemy);
-            }
 
+    public static boolean canAttack(PathPoint from, PathPoint to) {
+        Snake attacker = world.getSnake(from);
+        Snake victim = world.getSnakeByPart(to);
+
+        if (!attacker.isFury()) {
+            return isLonger(attacker, victim);
         } else {
-            if (enemy.isFury() && !isMySnakeLonger(enemy)) {
-                return false;
-            } else {
-                return true;
-            }
+            return !(victim.isFury() && !isLonger(attacker, victim));
         }
+
+    }
+
+    public static boolean isLonger(Snake from, Snake to) {
+        return from.getLength() > to.getLength() + 1;
     }
 
     public static boolean canEatStone() {
@@ -214,7 +233,6 @@ public class PathFinderUtils {
                 .flatMap(Arrays::stream)
                 .anyMatch(e -> e.equals(element));
     }
-
 
     public static List<PathPoint> generateChildren(PathPoint parent, PathPoint target) {
         List<PathPoint> children = new ArrayList<>();
@@ -255,7 +273,6 @@ public class PathFinderUtils {
 
     public static boolean shouldDropStone(int nextX, int nextY) {
         return (world.getBoard().getAt(nextX, nextY).equals(Elements.FURY_PILL)
-                //|| world.getMySnake().getLength() > 4
                 || world.getMySnake().getState().equals(FURY))
                 && world.getMySnake().getStoneCount() > 0;
     }
@@ -274,6 +291,32 @@ public class PathFinderUtils {
     }
 
     public static boolean validatePathPoint(PathPoint pathPoint) {
-        return !(pathPoint == null || isOutsideBoard(pathPoint.getX(), pathPoint.getY()));
+        return pathPoint != null && validatePathPoint(pathPoint.getX(), pathPoint.getY());
+    }
+
+    public static boolean validatePathPoint(int x, int y) {
+        return !isOutsideBoard(x, y);
+    }
+
+    public static boolean isOutsideBoard(int targetX, int targetY) {
+        return targetX < BOARD_LOWER_BOUNDARY || targetX > BOARD_UPPER_BOUNDARY || targetY < BOARD_LOWER_BOUNDARY || targetY > BOARD_UPPER_BOUNDARY;
+    }
+
+    public static PathPoint convertToProjectedHeadPathPoint(PathPoint currentPathPoint) {
+        Direction currentEnemyDirection = getEnemyDirection(currentPathPoint.getElementType());
+
+        if (currentEnemyDirection == null) {
+            return currentPathPoint;
+        }
+
+        PathPoint projectedPathPoint = getPathPointByDirection(currentPathPoint, currentEnemyDirection);
+
+        if (!canPassThrough(projectedPathPoint)) {
+            return currentPathPoint;
+        }
+
+        return projectedPathPoint;
     }
 }
+
+

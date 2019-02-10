@@ -22,10 +22,13 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
  * #L%
  */
 
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Area;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.Searcher;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.world.World;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,6 +36,9 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.checkPriorityHigher;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @AllArgsConstructor
@@ -42,32 +48,41 @@ public abstract class PathFinder {
     public static World world = new World();
 
     protected Searcher searcher;
-    protected DirectionProvider directionProvider;
 
     public abstract Optional<PathFinderResult> findNextResult();
 
     // calculate all possible paths and return direction
-    public String findPath() {
-        if (world.getMySnake().isFury() && world.getMySnake().getStoneCount() > 0) {
-            System.out.println("FURY MODE! State: " + world.getMySnake().getState() );
-            System.out.println("FURY MODE! Stone count: " + world.getMySnake().getStoneCount() );
-            return directionProvider.furyDirection();
-        }
 
-        System.out.println("State: " + world.getMySnake().getState() );
-        System.out.println("Stone count: " + world.getMySnake().getStoneCount() );
-        PathFinderResult result = findNextResult().orElse(null);
-        return directionProvider.getFinalDirectionString(result);
-    }
-
-    public List<PathFinderResult> getGroupResults(List<PathPoint> pathPoints) {
+    public List<PathFinderResult> getResults(List<PathPoint> pathPoints) {
         return pathPoints.stream()
-                .map(this::search)
+                .map(p -> searcher.findSinglePath(p))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 
-    protected PathFinderResult search(PathPoint target) {
-        return searcher.findSinglePath(target);
+    public PathFinderResult getNextResult(List<PathFinderResult> results) {
+        List<PathFinderResult> withNextPoint = results.stream()
+                .filter(r -> r.getNextPoint() != null).collect(toList());
+
+        int min = withNextPoint.stream()
+                .mapToInt(PathFinderResult::getDistance)
+                .min().orElse(Integer.MAX_VALUE);
+
+        PathFinderResult result = null;
+
+        results = results.stream()
+                .filter(p -> p.getDistance() >= min && p.getDistance() < min + 2)
+                .collect(toList());
+
+        for (PathFinderResult currentResult : results) {
+            if (checkPriorityHigher(currentResult, result)) {
+                result = currentResult;
+            }
+        }
+
+        // TODO weight
+        return result;
     }
 
 }

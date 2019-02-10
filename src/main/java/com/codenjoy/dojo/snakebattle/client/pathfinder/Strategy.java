@@ -10,7 +10,10 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFin
 
 public enum Strategy {
     ENEMY,
-    STONE;
+    STONE,
+    AREA;
+
+    public static final int ENEMY_ATTACK_DISTANCE = 10;
 
     public static Strategy chooseStrategy() {
         List<Enemy> enemies = world.getEnemies();
@@ -19,7 +22,8 @@ public enum Strategy {
                 .map(e -> Boolean.toString(PathFinderUtils.canAttackEnemy(e.getHead())))
                 .collect(Collectors.joining(", ")));
 
-        if (enemies.stream().anyMatch(e -> e.getDistance() < 10 && PathFinderUtils.canAttackEnemy(e.getHead()))) {
+        if (enemies.stream().anyMatch(e -> e.getDistance() < ENEMY_ATTACK_DISTANCE
+                && PathFinderUtils.canAttackEnemy(e.getHead()))) {
             return ENEMY;
         } else {
             return STONE;
