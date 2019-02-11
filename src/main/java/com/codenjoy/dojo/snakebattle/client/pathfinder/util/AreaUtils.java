@@ -9,6 +9,7 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Reward;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -134,7 +135,6 @@ public class AreaUtils {
                 .enemies(getAreaEnemies(coordinates))
                 .build();
 
-        area.setWeight(calculateAreaWeight(area));
 
         Reward reward = new Reward();
         reward.setPossibleReward(calculatePossibleReward(area));
@@ -143,6 +143,8 @@ public class AreaUtils {
         reward.setEnemyReward(calculateEnemyReward(area));
 
         area.setReward(reward);
+
+        area.setWeight(calculateAreaWeight(area));
 
         return area;
     }
@@ -158,14 +160,12 @@ public class AreaUtils {
     }
 
 
-    private static int limit(int coordinate) {
-        if (coordinate < BOARD_LOWER_BOUNDARY) {
-            return BOARD_LOWER_BOUNDARY;
-        } else if (coordinate > BOARD_UPPER_BOUNDARY) {
-            return BOARD_UPPER_BOUNDARY;
-        } else {
-            return coordinate;
-        }
+    public static Area getBestArea() {
+        Map<AreaCoordinates, Area> areas = world.getConstantAreas();
+
+        return areas.values().stream()
+                .max(Comparator.comparing(Area::getWeight))
+                .get();
     }
 
 
@@ -178,6 +178,16 @@ public class AreaUtils {
 
     public static boolean isBetween(int target, int start, int end) {
         return target >= start && target < end;
+    }
+
+    private static int limit(int coordinate) {
+        if (coordinate < BOARD_LOWER_BOUNDARY) {
+            return BOARD_LOWER_BOUNDARY;
+        } else if (coordinate > BOARD_UPPER_BOUNDARY) {
+            return BOARD_UPPER_BOUNDARY;
+        } else {
+            return coordinate;
+        }
     }
 
 }

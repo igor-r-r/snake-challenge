@@ -48,7 +48,7 @@ public class SolverTest extends BaseTest {
 
     @Before
     public void setup() {
-        pathFinder = new StonePathFinder(new AStar(), new DirectionProvider());
+        pathFinder = new StonePathFinder(new AStar());
         dice = mock(Dice.class);
         ai = new YourSolver();
     }

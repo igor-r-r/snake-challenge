@@ -26,7 +26,7 @@ public enum Strategy {
                 && PathFinderUtils.canAttackEnemy(e.getHead()))) {
             return ENEMY;
         } else {
-            return STONE;
+            return AREA;
         }
 
     }

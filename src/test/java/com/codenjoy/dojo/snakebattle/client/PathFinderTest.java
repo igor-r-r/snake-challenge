@@ -46,7 +46,7 @@ public class PathFinderTest extends BaseTest {
     @Before
     public void setup() {
         dice = mock(Dice.class);
-        pathFinder = new StonePathFinder(new AStar(), new DirectionProvider());
+        pathFinder = new StonePathFinder(new AStar());
         ai = new YourSolver();
     }
 
@@ -67,7 +67,7 @@ public class PathFinderTest extends BaseTest {
 
         world.updateWorldState(board);
 
-        TreeMap<Integer, List<PathPoint>> groupMapActual = world.getRegularPathPointGroups();
+        TreeMap<Integer, List<PathPoint>> groupMapActual = world.getGroups();
 
         assertEquals(1, groupMapActual.size());
         assertEquals(2, groupMapActual.get(10).size());

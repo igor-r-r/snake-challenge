@@ -27,12 +27,12 @@ import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.client.WebSocketRunner;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.Strategy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.AStar;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.AreaAwarePathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.ConstantAreaAwarePathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.EnemyPathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.AStar;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +56,7 @@ public class YourSolver implements Solver<Board> {
     private static final String GAME_1 = "https://game1.epam-bot-challenge.com.ua/codenjoy-contest/board/player/fordou37@gmail.com?code=1380899103789497";
     private static final String GAME_2 = "https://game2.epam-bot-challenge.com.ua/codenjoy-contest/board/player/fordou37@gmail.com?code=1380899103789497";
     private static final String GAME_3 = "https://game3.epam-bot-challenge.com.ua/codenjoy-contest/board/player/fordou37@gmail.com?code=1380899103789497";
+    private static final String TEST_GAME = "https://snakebattle.tk/codenjoy-contest/board/player/igorigor@gmail.com?code=5720714372095653995";
 
     private Map<Strategy, PathFinder> pathFinders = new HashMap<>();
     private DirectionProvider directionProvider = new DirectionProvider();
@@ -64,7 +65,7 @@ public class YourSolver implements Solver<Board> {
     YourSolver() {
         pathFinders.put(ENEMY, new EnemyPathFinder(new AStar()));
         pathFinders.put(STONE, new StonePathFinder(new AStar()));
-        pathFinders.put(AREA, new AreaAwarePathFinder(new AStar()));
+        pathFinders.put(AREA, new ConstantAreaAwarePathFinder(new AStar()));
     }
 
     @Override
@@ -95,7 +96,7 @@ public class YourSolver implements Solver<Board> {
     public static void main(String[] args) {
         WebSocketRunner.runClient(
                 // paste here board page url from browser after registration
-                GAME_1,
+                TEST_GAME,
                 new YourSolver(),
                 new Board());
     }

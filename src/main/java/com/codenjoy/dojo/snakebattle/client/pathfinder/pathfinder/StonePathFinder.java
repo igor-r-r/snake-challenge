@@ -29,6 +29,7 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.Searc
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 public class StonePathFinder extends PathFinder {
 
@@ -83,8 +84,11 @@ public class StonePathFinder extends PathFinder {
 
         System.out.println("STONE PATH FINDER");
 
-        for (Map.Entry<Integer, List<PathPoint>> group : world.getRegularPathPointGroups().entrySet()) {
+        TreeMap<Integer, List<PathPoint>> groups = world.getGroups();
 
+
+
+        for (Map.Entry<Integer, List<PathPoint>> group : world.getGroups().entrySet()) {
             if (group.getValue() != null) {
                 PathFinderResult result = getNextResult(getResults(group.getValue()));
                 if (result != null && result.getNextPoint() != null) {

@@ -53,6 +53,7 @@ public abstract class PathFinder {
 
     // calculate all possible paths and return direction
 
+    @Deprecated
     public List<PathFinderResult> getResults(List<PathPoint> pathPoints) {
         return pathPoints.stream()
                 .map(p -> searcher.findSinglePath(p))

@@ -23,7 +23,6 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.util;
  */
 
 import com.codenjoy.dojo.services.Direction;
-import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Enemy;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.model.Elements;
@@ -40,10 +39,8 @@ import static com.codenjoy.dojo.services.Direction.LEFT;
 import static com.codenjoy.dojo.services.Direction.RIGHT;
 import static com.codenjoy.dojo.services.Direction.UP;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.childrenDirections;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.childrenDirections;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyBody;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyHead;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyTail;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.isSnakeBody;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.myBody;

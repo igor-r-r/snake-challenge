@@ -1,23 +1,32 @@
 package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
 
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Area;
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.AreaCoordinates;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.Searcher;
 
-import java.util.Map;
+import java.util.Comparator;
 import java.util.Optional;
+
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.getBestArea;
 
 public class ConstantAreaAwarePathFinder extends PathFinder {
 
+    public ConstantAreaAwarePathFinder(Searcher searcher) {
+        super(searcher);
+    }
+
     @Override
     public Optional<PathFinderResult> findNextResult() {
-        Map<AreaCoordinates, Area> areas = world.getConstantAreas();
+        Area bestArea = getBestArea();
 
-        //Area bestArea = areas.values().stream().filter(a -> a.setPossibleReward());
+        PathFinderResult result = world.getAllValuableResults().stream()
+                .filter(r -> bestArea.getValuables().contains(r.getTarget()))
+                .max(Comparator.comparing(PathFinderResult::getWeight))
+                .get();
 
-
-
-        return Optional.empty();
+        return Optional.of(result);
     }
+
+
 
 }

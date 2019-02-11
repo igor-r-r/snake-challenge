@@ -60,7 +60,9 @@ public class AStar implements Searcher {
         // loop through open list
         while (!openList.isEmpty()) {
             // get current path point according to min F value
-            PathPoint current = openList.keySet().stream().min(Comparator.comparing(PathPoint::getF)).orElse(null);
+            PathPoint current = openList.keySet().stream()
+                    .min(Comparator.comparing(PathPoint::getF))
+                    .orElse(null);
 
             // removing current point from open list since it's already visited
             openList.remove(current);

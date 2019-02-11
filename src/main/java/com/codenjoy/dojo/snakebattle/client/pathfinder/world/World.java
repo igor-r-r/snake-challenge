@@ -10,12 +10,12 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.world;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -51,11 +51,9 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.F
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.getStateByElement;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinderPredicate.canAttackEnemy;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.buildAreas;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.buildConstantAreas;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.calculateEstimatedDistance;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canPassThrough;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.convertToProjectedHeadPathPoint;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyHead;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.getGroup;
@@ -72,6 +70,7 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.FURY_PILL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.GOLD;
 import static com.codenjoy.dojo.snakebattle.model.Elements.STONE;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.groupingBy;
 
 @Data
 @NoArgsConstructor
@@ -90,11 +89,12 @@ public class World {
     private List<PathPoint> flight;
     private List<PathPoint> valuablePathPoints;
     private List<PathPoint> allProjectedEnemyPositions;
-    private TreeMap<Integer, List<PathPoint>> regularPathPointGroups;
+    private TreeMap<Integer, List<PathPoint>> groups;
     private List<Enemy> enemies;
     private List<Snake> allSnakes;
     private List<PathFinderResult> allValuableResults;
     private List<PathFinderResult> allEnemyResults;
+    private Map<Integer, List<PathFinderResult>> groupsResults;
 
     public World(Board board) {
         this.board = board;
@@ -111,7 +111,7 @@ public class World {
         updateAllSnakes();
         updateAllValuableResults();
         updateAllEnemyResults();
-        //updateAreas();
+        updateGroupResults();
         updateConstantAreas();
     }
 
@@ -125,18 +125,6 @@ public class World {
         fury = toPathPointList(FURY_PILL);
         flight = toPathPointList(FLYING_PILL);
         stones = toPathPointList(STONE);
-    }
-
-    public void updateAllValuableResults() {
-        long startTime = System.nanoTime();
-
-        this.allValuableResults = valuablePathPoints.stream().parallel()
-                .map(p -> searcher.findSinglePath(p))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
-
-        System.out.println("!!!! All results time: " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
     }
 
     public void updateValuablePathPoints() {
@@ -159,7 +147,7 @@ public class World {
             }
         }
 
-        regularPathPointGroups = groupMap;
+        groups = groupMap;
     }
 
     private void updateMySnake() {
@@ -195,20 +183,24 @@ public class World {
     private void updateMySnakeParts() {
         this.mySnake.setParts(world.getBoard()
                 .get(Stream.of(myHead, myBody, myTail)
-                .flatMap(Stream::of)
+                        .flatMap(Stream::of)
                         .toArray(Elements[]::new))
                 .stream()
                 .map(WorldBuildHelper::buildPathPoint)
                 .collect(Collectors.toList()));
     }
 
-    public void updateEnemies() {
-        this.enemies = toPathPointList(enemyHead).stream().map(this::toEnemy).collect(Collectors.toList());
+    private void updateEnemies() {
+        this.enemies = toPathPointList(enemyHead).stream()
+                .map(this::toEnemy)
+                .collect(Collectors.toList());
         updateAllProjectedEnemyPositions();
     }
 
     private void updateAllProjectedEnemyPositions() {
-        //this.allProjectedEnemyPositions = enemies.stream().map(e -> e.getHead())
+        this.allProjectedEnemyPositions = enemies.stream()
+                .map(e -> convertToProjectedHeadPathPoint(e.getHead()))
+                .collect(Collectors.toList());
     }
 
     private void updateAllSnakes() {
@@ -216,9 +208,35 @@ public class World {
         this.allSnakes.addAll(enemies);
     }
 
+    //
+    // UPDATE RESULTS
+    //
+
+    public void updateAllValuableResults() {
+        long startTime = System.nanoTime();
+
+        this.allValuableResults = valuablePathPoints.stream().parallel()
+                .map(p -> searcher.findSinglePath(p))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+
+        System.out.println("!!!! All results time: " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
+    }
+
+    public void updateGroupResults() {
+        PathPoint me = mySnake.getHead();
+        groupsResults = allValuableResults.stream()
+                .collect(groupingBy(r -> getGroup(
+                        calculateEstimatedDistance(me.getX(), me.getY(), r.getTarget().getX(), r.getTarget().getY()))));
+
+    }
+
     private void updateAllEnemyResults() {
         List<PathFinderResult> enemyResults = new ArrayList<>();
-        List<PathPoint> enemyHeads = enemies.stream().map(Snake::getHead).collect(Collectors.toList());
+        List<PathPoint> enemyHeads = enemies.stream()
+                .map(Snake::getHead)
+                .collect(Collectors.toList());
         for (PathPoint pathPoint : enemyHeads) {
             if (canAttackEnemy().test(pathPoint)) {
                 PathPoint p = convertToProjectedHeadPathPoint(pathPoint);
@@ -233,7 +251,6 @@ public class World {
 
         allEnemyResults = enemyResults;
     }
-
 
 
     /**

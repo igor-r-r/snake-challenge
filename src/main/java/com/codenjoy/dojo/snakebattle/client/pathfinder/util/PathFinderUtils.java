@@ -211,11 +211,19 @@ public class PathFinderUtils {
         Snake attacker = world.getSnake(from);
         Snake victim = world.getSnakeByPart(to);
 
+        if (!asList(enemyHead).contains(to.getElementType())) {
+            return canAttackEnemyBody(attacker, victim);
+        }
+
         if (!attacker.isFury()) {
             return isLonger(attacker, victim);
         } else {
             return !(victim.isFury() && !isLonger(attacker, victim));
         }
+    }
+
+    public static boolean canAttackEnemyBody(Snake attacker, Snake victim) {
+        return attacker.isFury() && !victim.isFury();
 
     }
 

@@ -38,8 +38,6 @@ public class RewardUtils {
     }
 
     public static int calculateAreaWeight(Area area) {
-        return area.getValuables().stream()
-                .mapToInt(p -> PathPointPriority.getPriority(p.getElementType()))
-                .sum() * ((AREA_SIZE * 10) / (area.getDistance() + AREA_SIZE));
+        return area.getReward().getPossibleReward() * ((AREA_SIZE * 10) / (area.getDistance() + AREA_SIZE));
     }
 }
