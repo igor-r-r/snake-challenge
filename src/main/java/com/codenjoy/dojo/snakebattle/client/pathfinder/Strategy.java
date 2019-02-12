@@ -6,14 +6,23 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 
+@Getter
 public enum Strategy {
-    ENEMY,
-    STONE,
-    AREA;
+    ENEMY("enemyPathFinder"),
+    STONE("stonePathFinder"),
+    AREA("constantAreaAwarePathFinder");
 
     public static final int ENEMY_ATTACK_DISTANCE = 10;
+    private String pathFinderName;
+
+    Strategy(String pathFinderName) {
+
+        this.pathFinderName = pathFinderName;
+    }
 
     public static Strategy chooseStrategy() {
         List<Enemy> enemies = world.getEnemies();
@@ -30,5 +39,7 @@ public enum Strategy {
         }
 
     }
+
+
 
 }

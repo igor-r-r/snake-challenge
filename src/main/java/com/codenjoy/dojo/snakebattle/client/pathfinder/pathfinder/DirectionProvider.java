@@ -27,6 +27,8 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
+import org.springframework.stereotype.Component;
+
 import static com.codenjoy.dojo.services.Direction.ACT;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.buildDirection;
@@ -37,6 +39,7 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUti
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.isMySnakePart;
 import static com.codenjoy.dojo.snakebattle.model.Elements.STONE;
 
+@Component
 public class DirectionProvider {
 
     public String anyDirection() {

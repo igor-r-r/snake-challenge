@@ -26,11 +26,14 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.Searcher;
 
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+@Component
 public class StonePathFinder extends PathFinder {
 
     public StonePathFinder(Searcher searcher) {

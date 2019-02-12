@@ -39,6 +39,7 @@ import lombok.ToString;
 @ToString
 public class PathFinderResult {
 
+    @Builder.Default
     private int distance = Integer.MAX_VALUE;
     private int weight;
     private PathPoint nextPoint;

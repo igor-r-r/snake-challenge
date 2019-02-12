@@ -28,6 +28,8 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
 
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -41,6 +43,7 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUti
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_UP;
 
+@Service
 public class AStar implements Searcher {
 
     @Override
