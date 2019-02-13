@@ -25,7 +25,6 @@ public class WorldTest extends BaseTest {
     public void setup() {
         pathFinder = new EnemyPathFinder(new AStar());
         dice = mock(Dice.class);
-        ai = new YourSolver();
     }
 
     @Test
@@ -196,7 +195,5 @@ public class WorldTest extends BaseTest {
 
         System.out.println(areas.values().stream().map(area -> Integer.toString(area.getReward().getPossibleReward())).collect(Collectors.joining(", ")));
         System.out.println(areas.values().stream().map(area -> Integer.toString(area.getReward().getNonEnemyReward())).collect(Collectors.joining(", ")));
-
-
     }
 }

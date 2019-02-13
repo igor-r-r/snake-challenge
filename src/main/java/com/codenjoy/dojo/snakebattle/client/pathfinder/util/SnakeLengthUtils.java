@@ -28,6 +28,7 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFin
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.childrenDirections;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyTail;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.isOutsideBoard;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.isSnakeBody;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.myBody;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.myHead;
@@ -64,6 +66,7 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_LEFT;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_RIGHT;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_END_UP;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_TAIL_INACTIVE;
+import static java.util.Collections.singleton;
 import static java.util.Set.of;
 
 public class SnakeLengthUtils {
@@ -139,12 +142,16 @@ public class SnakeLengthUtils {
                 int childX = current.getX() + direction[0];
                 int childY = current.getY() + direction[1];
 
+                if (isOutsideBoard(childX, childY)) {
+                    continue;
+                }
+
                 Elements element = world.getBoard().getAt(childX, childY);
 
                 PathPoint child = PathPoint.builder()
                         .x(childX)
                         .y(childY)
-                        .parent(current)
+                        .parent(new ArrayList<>(singleton(current)))
                         .elementType(element)
                         .build();
 

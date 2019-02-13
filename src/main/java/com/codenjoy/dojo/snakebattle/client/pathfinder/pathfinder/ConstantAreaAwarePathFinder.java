@@ -4,6 +4,7 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Area;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.Searcher;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
@@ -14,7 +15,7 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.get
 @Component
 public class ConstantAreaAwarePathFinder extends PathFinder {
 
-    public ConstantAreaAwarePathFinder(Searcher searcher) {
+    public ConstantAreaAwarePathFinder(@Qualifier("AStar") Searcher searcher) {
         super(searcher);
     }
 

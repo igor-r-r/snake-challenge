@@ -25,6 +25,9 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import org.springframework.stereotype.Component;
@@ -37,6 +40,8 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtil
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getOppositeDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canPassThrough;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.isMySnakePart;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.isPossibleEnemyPosition;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.model.Elements.STONE;
 
 @Component
@@ -44,35 +49,40 @@ public class DirectionProvider {
 
     public String anyDirection() {
         Point me = world.getBoard().getMe();
+        Snake mySnake = world.getMySnake();
+        Direction mySnakeDirection = mySnake.getDirection();
 
         for (int[] direction : childrenDirections) {
+            Direction d = getDirection(direction);
+
+            if (getOppositeDirection(mySnakeDirection).equals(d)) {
+                continue;
+            }
+
             if (canPassThrough(me.getX() + direction[0], me.getY() + direction[1])) {
                 return getDirection(direction).toString();
             }
         }
 
         for (int[] direction : childrenDirections) {
-            Elements element = world.getBoard().getAt(me.getX() + direction[0], me.getY() + direction[1]);
+            Direction d = getDirection(direction);
 
-            if (isMySnakePart(element)) {
+            if (getOppositeDirection(mySnakeDirection).equals(d)) {
+                continue;
+            }
+
+            PathPoint target = buildPathPoint(me.getX() + direction[0], me.getY() + direction[1]);
+
+            if (isPossibleEnemyPosition(target) && !world.getAllProjectedEnemyPositions().contains(target)) {
+                return getDirection(direction).toString();
+            }
+
+            if (isMySnakePart(target.getElementType())) {
                 return getDirection(direction).toString();
             }
         }
 
         return ACT(0);
-    }
-
-    @Deprecated
-    public String furyDirection() {
-        if (world.getMySnake().isFury()
-                && world.getMySnake().getFuryCounter() < 9
-                && world.getMySnake().getFuryCounter() > 0) {
-            Direction[] turnAroundDirection = getOppositeDirection(world.getMySnake().getDirection());
-            System.out.println("Fury: counter: " + world.getMySnake().getFuryCounter() + ", stones: " + world.getMySnake().getStoneCount());
-            return buildDirection(turnAroundDirection[0], turnAroundDirection[1], ACT);
-        }
-
-        return anyDirection();
     }
 
     public String getFinalDirectionString(PathFinderResult result) {

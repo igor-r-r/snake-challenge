@@ -35,6 +35,7 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.Searc
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,15 +49,19 @@ import lombok.NoArgsConstructor;
 
 import static com.codenjoy.dojo.services.Direction.RIGHT;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.FURY;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.SLEEP;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.SnakeState.getStateByElement;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinderPredicate.canAttackEnemy;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.buildConstantAreas;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.calculateEstimatedDistance;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canEatStoneLongest;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.convertToProjectedHeadPathPoint;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.enemyHead;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.getAllPossibleEnemyPositions;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.getGroup;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.isRestricted;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.myBody;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.myHead;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.myTail;
@@ -69,13 +74,21 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.FLYING_PILL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.FURY_PILL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.GOLD;
 import static com.codenjoy.dojo.snakebattle.model.Elements.STONE;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 @Data
 @NoArgsConstructor
 public class World {
 
+    public static List<PathPoint> restrictedPathPoints;
+    private static final int TICK_LIMIT = 300;
+    private static final int STONE_TICK_TIME = 200;
+
+
+    private int tickCounter;
     private Board board;
     private Snake mySnake = new Snake();
     private Searcher searcher = new AStar();
@@ -89,30 +102,51 @@ public class World {
     private List<PathPoint> flight;
     private List<PathPoint> valuablePathPoints;
     private List<PathPoint> allProjectedEnemyPositions;
+    private Map<PathPoint, List<Enemy>> possibleEnemyPositions;
     private TreeMap<Integer, List<PathPoint>> groups;
+
     private List<Enemy> enemies;
     private List<Snake> allSnakes;
+
     private List<PathFinderResult> allValuableResults;
     private List<PathFinderResult> allEnemyResults;
     private Map<Integer, List<PathFinderResult>> groupsResults;
 
     public World(Board board) {
         this.board = board;
+
+    }
+
+    public void updateRestricted() {
+        restrictedPathPoints = new ArrayList<>();
+        restrictedPathPoints.add(buildPathPoint(9, 22));
+        restrictedPathPoints.add(buildPathPoint(10, 22));
+        restrictedPathPoints.add(buildPathPoint(9, 20));
+        restrictedPathPoints.add(buildPathPoint(10, 20));
+        restrictedPathPoints.add(buildPathPoint(19, 10));
+        restrictedPathPoints.add(buildPathPoint(21, 10));
+        restrictedPathPoints.add(buildPathPoint(23, 10));
     }
 
     public void updateWorldState(Board board) {
         setBoard(board);
 
+        if (board.size() == 30) {
+            updateRestricted();
+        }
         updateValuablePathPointsSeparate();
         updateValuablePathPoints();
         updatePathPointGroups();
         updateMySnake();
         updateEnemies();
         updateAllSnakes();
+        updatePossibleEnemyPositions();
+        updateAllProjectedEnemyPositions();
         updateAllValuableResults();
         updateAllEnemyResults();
         updateGroupResults();
         updateConstantAreas();
+        updateTickCounter();
     }
 
     private void updateConstantAreas() {
@@ -124,18 +158,32 @@ public class World {
         gold = toPathPointList(GOLD);
         fury = toPathPointList(FURY_PILL);
         flight = toPathPointList(FLYING_PILL);
-        stones = toPathPointList(STONE);
+        //stones = canEatStoneLongest() ? toPathPointList(STONE) : emptyList();
+
+        if (tickCounter < STONE_TICK_TIME) {
+            if (canEatStoneLongest()) {
+                stones = toPathPointList(STONE);
+            } else {
+                stones = emptyList();
+            }
+        } else {
+            stones = toPathPointList(STONE);
+        }
+
     }
 
     public void updateValuablePathPoints() {
         valuablePathPoints = Stream.of(apples, gold, fury, stones, flight)
                 .flatMap(List::stream)
-                .collect(Collectors.toList());
+                .filter(p -> !isRestricted(p))
+                .collect(toList());
     }
 
     private void updatePathPointGroups() {
         TreeMap<Integer, List<PathPoint>> groupMap = new TreeMap<>();
         Point me = board.getMe();
+
+        System.out.println("Valuables: " + valuablePathPoints.stream().filter(p -> p.getElementType().equals(STONE)).collect(Collectors.toList()));
 
         for (PathPoint pathPoint : valuablePathPoints) {
             int group = getGroup(
@@ -173,10 +221,11 @@ public class World {
     }
 
     private void updateMySnakeState() {
+        mySnake.setPreviousState(mySnake.getState());
         mySnake.setState(getStateByElement(board.getAt(board.getMe())));
         if (FURY.equals(mySnake.getState())) {
             mySnake.setFuryCounter(mySnake.getFuryCounter() + 1);
-            System.out.println("Fury incremented: " + mySnake.getFuryCounter());
+            //System.out.println("Fury incremented: " + mySnake.getFuryCounter());
         }
     }
 
@@ -187,20 +236,39 @@ public class World {
                         .toArray(Elements[]::new))
                 .stream()
                 .map(WorldBuildHelper::buildPathPoint)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     private void updateEnemies() {
         this.enemies = toPathPointList(enemyHead).stream()
                 .map(this::toEnemy)
-                .collect(Collectors.toList());
-        updateAllProjectedEnemyPositions();
+                .collect(toList());
     }
 
     private void updateAllProjectedEnemyPositions() {
         this.allProjectedEnemyPositions = enemies.stream()
                 .map(e -> convertToProjectedHeadPathPoint(e.getHead()))
-                .collect(Collectors.toList());
+                .collect(toList());
+    }
+
+    private void updatePossibleEnemyPositions() {
+        Map<PathPoint, List<Enemy>> possibleEnemyPositionMap = new HashMap<>();
+
+        for (Enemy enemy : enemies) {
+            PathPoint head = enemy.getHead();
+            List<PathPoint> possiblePositions = getAllPossibleEnemyPositions(head);
+            for (PathPoint pathPoint : possiblePositions) {
+
+                if (possibleEnemyPositionMap.containsKey(pathPoint)) {
+                    possibleEnemyPositionMap.get(pathPoint).add(enemy);
+                } else {
+                    possibleEnemyPositionMap.put(pathPoint, new ArrayList<>(singletonList(enemy)));
+                }
+            }
+        }
+
+        this.possibleEnemyPositions = possibleEnemyPositionMap;
+        System.out.println("possibleEnemyPositions:" + possibleEnemyPositions);
     }
 
     private void updateAllSnakes() {
@@ -208,10 +276,10 @@ public class World {
         this.allSnakes.addAll(enemies);
     }
 
+
     //
     // UPDATE RESULTS
     //
-
     public void updateAllValuableResults() {
         long startTime = System.nanoTime();
 
@@ -219,7 +287,7 @@ public class World {
                 .map(p -> searcher.findSinglePath(p))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         System.out.println("!!!! All results time: " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
     }
@@ -236,7 +304,7 @@ public class World {
         List<PathFinderResult> enemyResults = new ArrayList<>();
         List<PathPoint> enemyHeads = enemies.stream()
                 .map(Snake::getHead)
-                .collect(Collectors.toList());
+                .collect(toList());
         for (PathPoint pathPoint : enemyHeads) {
             if (canAttackEnemy().test(pathPoint)) {
                 PathPoint p = convertToProjectedHeadPathPoint(pathPoint);
@@ -252,12 +320,21 @@ public class World {
         allEnemyResults = enemyResults;
     }
 
+    private void updateTickCounter() {
+        System.out.println("Tick: " + tickCounter);
+        if (SLEEP.equals(mySnake.getPreviousState())) {
+            tickCounter = 0;
+        } else {
+            tickCounter++;
+        }
+
+    }
 
     /**
      * Use after all path finding operations are done.
      * Should be called right before direction string return.
      */
-    public void postUpdate() {
+    public void postTick() {
         if (mySnake.getFuryCounter() > 9) {
             mySnake.setFuryCounter(0);
         }
@@ -290,6 +367,9 @@ public class World {
     }
 
     public Snake getSnakeByPart(PathPoint part) {
-        return allSnakes.stream().filter(s -> s.getParts().contains(part) || s.getHead().equals(part)).findFirst().orElseThrow(RuntimeException::new);
+        return allSnakes.stream()
+                .filter(s -> s.getParts().contains(part) || s.getHead().equals(part))
+                .findFirst()
+                .orElseThrow(RuntimeException::new);
     }
 }

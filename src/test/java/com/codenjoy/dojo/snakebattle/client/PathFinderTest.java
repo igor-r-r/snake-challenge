@@ -28,6 +28,7 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.AStar;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.DirectionProvider;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinder;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
 import org.junit.Before;
@@ -37,7 +38,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import static com.codenjoy.dojo.services.Direction.DOWN;
+import static com.codenjoy.dojo.services.Direction.LEFT;
+import static com.codenjoy.dojo.services.Direction.UP;
+import static com.codenjoy.dojo.services.Direction.onlyDirections;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -47,7 +53,6 @@ public class PathFinderTest extends BaseTest {
     public void setup() {
         dice = mock(Dice.class);
         pathFinder = new StonePathFinder(new AStar());
-        ai = new YourSolver();
     }
 
     @Test
@@ -183,6 +188,51 @@ public class PathFinderTest extends BaseTest {
         Optional<PathFinderResult> resultActual = pathFinder.findNextResult();
 
         assertEquals(Elements.APPLE, resultActual.get().getTarget().getElementType());
+
+    }
+    
+    @Test
+    public void shouldAvoidPossibleEnemyPosition() {
+        Board board = board(
+                  "☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼"
+                + "☼☼     $          ○          ☼"
+                + "☼# ○                         ☼"
+                + "☼☼  ○    ●                   ☼"
+                + "☼☼○                          ☼"
+                + "☼☼          ○●  ○            ☼"
+                + "☼☼   ○ ☼☼☼☼☼            ○    ☼"
+                + "☼☼     ☼                     ☼"
+                + "☼#     ☼☼☼        ☼☼☼☼#      ☼"
+                + "☼☼     ☼          ☼   ☼      ☼"
+                + "☼☼     ☼☼☼☼#      ☼☼☼☼#      ☼"
+                + "☼☼    ○●          ☼          ☼"
+                + "☼☼            ●   ☼          ☼"
+                + "☼☼   ○       ●               ☼"
+                + "☼#                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼        ☼☼☼                ☼"
+                + "☼☼ ○     ☼  ☼                ☼"
+                + "☼☼      ☼☼☼☼#     ☼☼   ☼#    ☼"
+                + "☼☼    ○ ☼   ☼     ☼ ☼ ☼ ☼ ●  ☼"
+                + "☼#      ☼ $ ☼╓    ☼  ☼  ☼    ☼"
+                + "☼☼  ○       ◄╝    ☼     ☼    ☼"
+                + "☼☼         ˄    æ ☼    ○☼    ☼"
+                + "☼☼         │● ┌─┘            ☼"
+                + "☼☼         └──┘              ☼"
+                + "☼☼         ●                 ☼"
+                + "☼#                       ○   ☼"
+                + "☼☼ ○○                        ☼"
+                + "☼☼                           ☼"
+                + "☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼");
+
+        world.updateWorldState(board);
+        world.getMySnake().setDirection(LEFT);
+
+        //PathFinderResult result = pathFinder.findNextResult().get();
+        DirectionProvider directionProvider = new DirectionProvider();
+        String direction = directionProvider.anyDirection();
+
+        assertEquals(DOWN.toString(), direction);
 
     }
 

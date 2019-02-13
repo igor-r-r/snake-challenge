@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canAttackEnemy;
+import static java.util.stream.Collectors.joining;
 
 @Getter
 public enum Strategy {
@@ -27,15 +29,11 @@ public enum Strategy {
     public static Strategy chooseStrategy() {
         List<Enemy> enemies = world.getEnemies();
 
-        System.out.println("Can attack: " + enemies.stream()
-                .map(e -> Boolean.toString(PathFinderUtils.canAttackEnemy(e.getHead())))
-                .collect(Collectors.joining(", ")));
-
         if (enemies.stream().anyMatch(e -> e.getDistance() < ENEMY_ATTACK_DISTANCE
-                && PathFinderUtils.canAttackEnemy(e.getHead()))) {
+                && canAttackEnemy(e.getHead()))) {
             return ENEMY;
         } else {
-            return AREA;
+            return STONE;
         }
 
     }

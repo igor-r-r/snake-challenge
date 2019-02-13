@@ -51,12 +51,6 @@ public enum SnakeState {
         this.elements = Set.of(elements);
     }
 
-    private void setRules() {
-        //NORMAL.setIncompatibleStates(FURY, FLIGHT);
-        //FURY.setIncompatibleStates(NORMAL, FLIGHT);
-        //FLIGHT.setIncompatibleStates(NORMAL, FLIGHT);
-    }
-
     public static SnakeState getStateByElement(Elements element) {
         return Arrays.stream(values())
                 .filter(p -> p.elements.contains(element))

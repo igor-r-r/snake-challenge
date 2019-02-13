@@ -25,10 +25,13 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.util;
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
+import com.codenjoy.dojo.snakebattle.client.pathfinder.world.World;
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +42,7 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.BOA
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.childrenDirections;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getEnemyDirection;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getPathPointByDirection;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.World.restrictedPathPoints;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_HORIZONTAL;
 import static com.codenjoy.dojo.snakebattle.model.Elements.BODY_LEFT_DOWN;
@@ -80,8 +84,13 @@ import static com.codenjoy.dojo.snakebattle.model.Elements.TAIL_END_RIGHT;
 import static com.codenjoy.dojo.snakebattle.model.Elements.TAIL_END_UP;
 import static com.codenjoy.dojo.snakebattle.model.Elements.TAIL_INACTIVE;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 
 public class PathFinderUtils {
+
+    public static List<PathPoint> restrictedList = new ArrayList<>();
+
+
 
     public static final int GROUP_STEP = 10;
 
@@ -168,8 +177,16 @@ public class PathFinderUtils {
         return validatePathPoint(targetX, targetY) && canPassThrough(buildPathPoint(targetX, targetY));
     }
 
+    public static boolean isRestricted(PathPoint targetPathPoint) {
+        return restrictedPathPoints.contains(targetPathPoint);
+    }
+
 
     public static boolean canPassThrough(PathPoint targetPathPoint) {
+        if (isRestricted(targetPathPoint)) {
+            return false;
+        }
+
         if (!validatePathPoint(targetPathPoint)) {
             return false;
         }
@@ -189,9 +206,13 @@ public class PathFinderUtils {
             return false;
         }
 
-        // TODO temporarily not allowed
         if (isEnemySnakePart(targetElement)) {
             return canAttack(world.getMySnake().getHead(), targetPathPoint);
+        }
+
+        if (isPossibleEnemyPosition(targetPathPoint)) {
+            return world.getPossibleEnemyPositions().get(targetPathPoint).stream()
+                    .allMatch(e -> canAttack(world.getMySnake().getHead(), e.getHead()));
         }
 
         // STONE is allowed if length is more than 3
@@ -231,9 +252,18 @@ public class PathFinderUtils {
         return from.getLength() > to.getLength() + 1;
     }
 
+    public static boolean canEatStoneLongest() {
+        return (world.getMySnake().getLength() > 4 && isLongest())
+                || world.getMySnake().getState().equals(FURY); //calculateEstimatedDistance(board.getMe().getX());
+    }
+
     public static boolean canEatStone() {
         return world.getMySnake().getLength() > 4
                 || world.getMySnake().getState().equals(FURY); //calculateEstimatedDistance(board.getMe().getX());
+    }
+
+    private static boolean isLongest() {
+        return world.getEnemies().stream().noneMatch(e -> e.getLength() + 4 > world.getMySnake().getLength());
     }
 
     public static boolean isSnakeBody(Elements element) {
@@ -242,38 +272,6 @@ public class PathFinderUtils {
                 .anyMatch(e -> e.equals(element));
     }
 
-    public static List<PathPoint> generateChildren(PathPoint parent, PathPoint target) {
-        List<PathPoint> children = new ArrayList<>();
-
-        for (int[] direction : childrenDirections) {
-
-            int childX = parent.getX() + direction[0];
-            int childY = parent.getY() + direction[1];
-
-            if (!canPassThrough(childX, childY)) {
-                continue;
-            }
-
-            int g = parent.getG() + 1;
-            int h = calculateEstimatedDistance(childX, childY, target.getX(), target.getY());
-            int f = g + h;
-            Elements elementType = world.getBoard().getAt(childX, childY);
-
-            PathPoint child = PathPoint.builder()
-                    .x(childX)
-                    .y(childY)
-                    .g(g)
-                    .h(g)
-                    .f(f)
-                    .parent(parent)
-                    .elementType(elementType)
-                    .build();
-
-            children.add(child);
-        }
-
-        return children;
-    }
 
     public static int getGroup(int estimatedDistance) {
         return GROUP_STEP * (estimatedDistance / GROUP_STEP) + GROUP_STEP;
@@ -298,6 +296,10 @@ public class PathFinderUtils {
 
     }
 
+    public static boolean isPossibleEnemyPosition(PathPoint target) {
+        return world.getPossibleEnemyPositions().containsKey(target);
+    }
+
     public static boolean validatePathPoint(PathPoint pathPoint) {
         return pathPoint != null && validatePathPoint(pathPoint.getX(), pathPoint.getY());
     }
@@ -319,12 +321,24 @@ public class PathFinderUtils {
 
         PathPoint projectedPathPoint = getPathPointByDirection(currentPathPoint, currentEnemyDirection);
 
-        if (!canPassThrough(projectedPathPoint)) {
-            return currentPathPoint;
-        }
-
         return projectedPathPoint;
     }
+
+    public static List<PathPoint> getAllPossibleEnemyPositions(PathPoint currentPathPoint) {
+        List<PathPoint> children = new ArrayList<>();
+
+        for (int[] direction : childrenDirections) {
+
+            int childX = currentPathPoint.getX() + direction[0];
+            int childY = currentPathPoint.getY() + direction[1];
+
+            Elements elementType = world.getBoard().getAt(childX, childY);
+
+            children.add(buildPathPoint(childX, childY, elementType));
+        }
+        return children;
+    }
+
 }
 
 

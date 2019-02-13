@@ -40,7 +40,7 @@ public enum PathPointPriority {
     FURY_PILL(7, 0, of(Elements.FURY_PILL)),
     APPLE(2, 1, of(Elements.APPLE)),
     GOLD(5, 10, of(Elements.GOLD)),
-    STONE(2, 5, of(Elements.STONE)),
+    STONE(3, 5, of(Elements.STONE)),
     ENEMY_HEAD(6, 0, of(enemyHead));
 
     int priority;
@@ -64,9 +64,18 @@ public enum PathPointPriority {
         return getByElementType(current).priority > getByElementType(previous).priority;
     }
 
+    public static boolean isPriorityEquals(Elements current, Elements previous) {
+        return getByElementType(current).priority == getByElementType(previous).priority;
+    }
+
     public static boolean checkPriorityHigher(PathFinderResult current, PathFinderResult previous) {
         return previous == null
                 || isPriorityHigher(current.getTarget().getElementType(), previous.getTarget().getElementType());
+    }
+
+    public static boolean checkPriorityEquals(PathFinderResult current, PathFinderResult previous) {
+        return previous != null
+                && isPriorityEquals(current.getTarget().getElementType(), previous.getTarget().getElementType());
     }
 
     public static Integer getPriority(Elements element) {

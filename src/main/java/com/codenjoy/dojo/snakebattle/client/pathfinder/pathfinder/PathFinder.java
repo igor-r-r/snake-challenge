@@ -22,13 +22,11 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder;
  * #L%
  */
 
-import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Area;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.Searcher;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.world.World;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +35,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.checkPriorityEquals;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority.checkPriorityHigher;
 import static java.util.stream.Collectors.toList;
 
@@ -55,6 +54,8 @@ public abstract class PathFinder {
 
     @Deprecated
     public List<PathFinderResult> getResults(List<PathPoint> pathPoints) {
+        System.out.println(pathPoints);
+
         return pathPoints.stream()
                 .map(p -> searcher.findSinglePath(p))
                 .filter(Optional::isPresent)
@@ -73,13 +74,17 @@ public abstract class PathFinder {
         PathFinderResult result = null;
 
         results = results.stream()
-                .filter(p -> p.getDistance() >= min && p.getDistance() < min + 2)
+                .filter(p -> p.getDistance() >= min && p.getDistance() < min + 10)
                 .collect(toList());
 
         for (PathFinderResult currentResult : results) {
             if (checkPriorityHigher(currentResult, result)) {
                 result = currentResult;
+            } else if (checkPriorityEquals(currentResult, result) && currentResult.getDistance() < result.getDistance()) {
+                result = currentResult;
             }
+
+
         }
 
         // TODO weight

@@ -32,6 +32,7 @@ import lombok.Data;
 public class Snake {
 
     SnakeState state = SnakeState.NORMAL;
+    SnakeState previousState = SnakeState.NORMAL;
     protected boolean hasStone;
     protected int stoneCount;
     protected int length;
