@@ -24,10 +24,14 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.model;
 
 import com.codenjoy.dojo.snakebattle.model.Elements;
 
+import java.util.List;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
+import static java.lang.Integer.compare;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -47,10 +51,10 @@ public class PathPoint implements Comparable<PathPoint> {
     private Elements elementType;
     private PathPointPriority pathPointPriority; // 0 - empty or obstacle, 1 - flying pill, 2 - fury pill, 3 - apple, 4 - gold
 
-    private PathPoint parent;
+    private List<PathPoint> parent;
 
     @Override
     public int compareTo(PathPoint o) {
-        return Integer.compare(this.f, o.f);
+        return compare(this.f, o.f);
     }
 }

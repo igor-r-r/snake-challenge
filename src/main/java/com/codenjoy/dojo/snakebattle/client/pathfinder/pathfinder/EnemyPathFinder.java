@@ -26,6 +26,10 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher.Searcher;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,9 +37,10 @@ import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 
+@Component
 public class EnemyPathFinder extends PathFinder {
 
-    public EnemyPathFinder(Searcher searcher) {
+    public EnemyPathFinder(@Qualifier("AStar") Searcher searcher) {
         super(searcher);
     }
 

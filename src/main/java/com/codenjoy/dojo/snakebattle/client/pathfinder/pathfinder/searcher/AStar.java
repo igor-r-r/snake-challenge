@@ -28,6 +28,8 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPointPriority;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.Snake;
 
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,16 +39,14 @@ import java.util.Optional;
 
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.getCloseDirection;
-import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.generateChildren;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.model.Elements.HEAD_UP;
 
-public class AStar implements Searcher {
+@Service
+public class AStar extends Searcher {
 
     @Override
     public Optional<PathFinderResult> findSinglePath(PathPoint target) {
-        PathFinderResult result = null;
-
         Map<PathPoint, PathPoint> openList = new HashMap<>();
         Map<PathPoint, PathPoint> closedList = new HashMap<>();
 
@@ -93,6 +93,8 @@ public class AStar implements Searcher {
 
                 if (openList.containsKey(childPoint)) {
                     PathPoint existingPoint = openList.get(childPoint);
+                    existingPoint.getParent().add(current);
+
                     if (existingPoint.getG() < childPoint.getG()) {
                         continue;
                     }
@@ -103,7 +105,7 @@ public class AStar implements Searcher {
             }
         }
 
-        return Optional.ofNullable(result);
+        return Optional.empty();
     }
 
     //public List<PathPoint> sortAccordingToEnemyDirection() {
@@ -120,6 +122,7 @@ public class AStar implements Searcher {
     //
     //}
 
+
     // get PathFinderResult with direction for the next move
     public PathFinderResult calculatePathResult(PathPoint target, PathPoint startingPoint) {
 
@@ -128,10 +131,10 @@ public class AStar implements Searcher {
         int weight = 0;
         List<PathPoint> allValuables = new ArrayList<>();
 
-        while (current.getParent() != null) {
+        while (current != null && current.getParent().size() != 0) {
             weight += PathPointPriority.getPriority(current.getElementType());
 
-            if (current.getParent().equals(startingPoint)) {
+            if (current.getParent().contains(startingPoint)) {
                 Snake me = world.getMySnake();
 
                 return PathFinderResult.builder()
@@ -150,11 +153,10 @@ public class AStar implements Searcher {
                 allValuables.add(current);
             }
 
-            current = current.getParent();
+            current = current.getParent().stream().findAny().orElse(null);
         }
 
         return null;
     }
-
 
 }

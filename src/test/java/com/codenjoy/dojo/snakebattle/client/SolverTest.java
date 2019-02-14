@@ -32,6 +32,8 @@ import com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.StonePathFinde
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -50,7 +52,7 @@ public class SolverTest extends BaseTest {
     public void setup() {
         pathFinder = new StonePathFinder(new AStar());
         dice = mock(Dice.class);
-        ai = new YourSolver();
+        ai = new YourSolver(new HashMap<>());
     }
 
     @Test

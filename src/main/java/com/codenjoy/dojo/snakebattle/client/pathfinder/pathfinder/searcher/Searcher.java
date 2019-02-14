@@ -24,9 +24,51 @@ package com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.searcher;
 
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathFinderResult;
 import com.codenjoy.dojo.snakebattle.client.pathfinder.model.PathPoint;
+import com.codenjoy.dojo.snakebattle.model.Elements;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-public interface Searcher {
-    Optional<PathFinderResult> findSinglePath(PathPoint target);
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.DirectionUtils.childrenDirections;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.calculateEstimatedDistance;
+import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.PathFinderUtils.canPassThrough;
+import static java.util.Collections.singleton;
+
+public abstract class Searcher {
+    public abstract Optional<PathFinderResult> findSinglePath(PathPoint target);
+
+    protected List<PathPoint> generateChildren(PathPoint parent, PathPoint target) {
+        List<PathPoint> children = new ArrayList<>();
+
+        for (int[] direction : childrenDirections) {
+
+            int childX = parent.getX() + direction[0];
+            int childY = parent.getY() + direction[1];
+
+            if (!canPassThrough(childX, childY)) {
+                continue;
+            }
+
+            int g = parent.getG() + 1;
+            int h = calculateEstimatedDistance(childX, childY, target.getX(), target.getY());
+            int f = g + h;
+            Elements elementType = world.getBoard().getAt(childX, childY);
+
+            PathPoint child = PathPoint.builder()
+                    .x(childX)
+                    .y(childY)
+                    .g(g)
+                    .h(g)
+                    .f(f)
+                    .parent(new ArrayList<>(singleton(parent)))
+                    .elementType(elementType)
+                    .build();
+
+            children.add(child);
+        }
+
+        return children;
+    }
 }

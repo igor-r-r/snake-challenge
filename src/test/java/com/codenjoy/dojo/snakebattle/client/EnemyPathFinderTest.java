@@ -39,6 +39,7 @@ import java.util.List;
 
 import static com.codenjoy.dojo.services.Direction.DOWN;
 import static com.codenjoy.dojo.services.Direction.RIGHT;
+import static com.codenjoy.dojo.services.Direction.UP;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.pathfinder.PathFinder.world;
 import static com.codenjoy.dojo.snakebattle.client.pathfinder.world.WorldBuildHelper.buildPathPoint;
 import static com.codenjoy.dojo.snakebattle.model.Elements.ENEMY_HEAD_DEAD;
@@ -58,7 +59,6 @@ public class EnemyPathFinderTest extends BaseTest {
     public void setup() {
         pathFinder = new EnemyPathFinder(new AStar());
         dice = mock(Dice.class);
-        ai = new YourSolver();
     }
 
     @Test
@@ -390,4 +390,49 @@ public class EnemyPathFinderTest extends BaseTest {
 
         //assertEquals(ENEMY_HEAD_DOWN, resultActual.getTarget().getElementType());
     }
+
+    @Test
+    public void shouldNotHitEnemyBody() {
+        Board board = board(
+                  "☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼"
+                + "☼☼                           ☼"
+                + "☼#                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼                   ○  ○    ☼"
+                + "☼☼           ●               ☼"
+                + "☼☼    ●☼☼☼☼☼  ®        ○     ☼"
+                + "☼☼     ☼                  ○  ☼"
+                + "☼#     ☼☼☼     ●  ☼☼☼☼#      ☼"
+                + "☼☼  ●  ☼      ○   ☼   ☼  ●   ☼"
+                + "☼☼     ☼☼☼☼#      ☼☼☼☼#      ☼"
+                + "☼☼          ╘╗    ☼   ○      ☼"
+                + "☼☼           ╚╗   ☼○         ☼"
+                + "☼☼            ║              ☼"
+                + "☼#   ┌>       ║              ☼"
+                + "☼☼  ×┘        ║ ˄            ☼"
+                + "☼☼        ☼☼☼ ╚►│      $     ☼"
+                + "☼☼       ☼  ☼   ¤            ☼"
+                + "☼☼ ○    ☼☼☼☼#     ☼☼   ☼#    ☼"
+                + "☼☼      ☼   ☼     ☼ ☼ ☼ ☼    ☼"
+                + "☼#      ☼   ☼     ☼  ☼  ☼    ☼"
+                + "☼☼                ☼     ☼    ☼"
+                + "☼☼                ☼     ☼    ☼"
+                + "☼☼                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼                           ☼"
+                + "☼#                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼                           ☼"
+                + "☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼");
+
+        world.updateWorldState(board);
+
+        PathFinderResult resultActual = pathFinder.findNextResult().get();
+
+        assertNotNull(resultActual);
+        assertEquals(UP, resultActual.getDirection());
+    }
+
 }
+
+

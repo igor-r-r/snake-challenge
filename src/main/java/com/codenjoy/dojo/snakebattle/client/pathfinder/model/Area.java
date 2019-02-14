@@ -13,7 +13,7 @@ import static com.codenjoy.dojo.snakebattle.client.pathfinder.util.AreaUtils.ARE
 @EqualsAndHashCode
 public class Area {
 
-    private int[] borders = {AREA_SIZE, AREA_SIZE};
+    private final int[] borders = {AREA_SIZE, AREA_SIZE};
 
     @EqualsAndHashCode.Include
     private AreaCoordinates coordinates;

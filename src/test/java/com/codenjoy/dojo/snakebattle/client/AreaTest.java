@@ -26,7 +26,6 @@ public class AreaTest extends BaseTest {
     public void setup() {
         pathFinder = new ConstantAreaAwarePathFinder(new AStar());
         dice = mock(Dice.class);
-        ai = new YourSolver();
     }
 
     @Test

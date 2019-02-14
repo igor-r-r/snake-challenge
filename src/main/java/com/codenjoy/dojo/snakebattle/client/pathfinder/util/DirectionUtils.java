@@ -54,7 +54,8 @@ public class DirectionUtils {
     public static Map<Elements, Direction> enemyHeadToDirectionMap = new HashMap<>();
     public static Map<Direction, int[]> directionToCoordsMap = new HashMap<>();
     public static Map<int[], Direction> coordsToDirectionMap = new HashMap<>();
-    public static Map<Direction, Direction[]> directionToOppositeMap = new HashMap<>();
+    //public static Map<Direction, Direction[]> directionToOppositeMap = new HashMap<>();
+    public static Map<Direction, Direction> directionToOppositeMap = new HashMap<>();
 
 
     static {
@@ -73,10 +74,11 @@ public class DirectionUtils {
         coordsToDirectionMap.put(RIGHT_COORDS, RIGHT);
         coordsToDirectionMap.put(LEFT_COORDS, LEFT);
 
-        directionToOppositeMap.put(UP, new Direction[]{RIGHT, DOWN});
-        directionToOppositeMap.put(DOWN, new Direction[]{RIGHT, UP});
-        directionToOppositeMap.put(RIGHT, new Direction[]{DOWN, LEFT});
-        directionToOppositeMap.put(LEFT, new Direction[]{DOWN, RIGHT});
+        directionToOppositeMap.put(UP, DOWN);
+        directionToOppositeMap.put(DOWN, UP);
+        directionToOppositeMap.put(RIGHT, LEFT);
+        directionToOppositeMap.put(LEFT, RIGHT);
+
 
     }
 
@@ -89,7 +91,9 @@ public class DirectionUtils {
     }
 
     public static Direction getDirection(int... coords) {
-        return coordsToDirectionMap.get(coords) != null ? coordsToDirectionMap.get(coords) : RIGHT;
+        return coordsToDirectionMap.entrySet().stream()
+                .filter(e -> e.getKey()[0] == coords[0] && e.getKey()[1] == coords[1])
+                .findAny().get().getValue();
     }
 
     public static Direction getCloseDirection(int fromX, int fromY, int toX, int toY) {
@@ -125,7 +129,7 @@ public class DirectionUtils {
         return buildPathPoint(nextX, nextY, nextElement);
     }
 
-    public static Direction[] getOppositeDirection(Direction direction) {
+    public static Direction getOppositeDirection(Direction direction) {
         return directionToOppositeMap.get(direction);
     }
 
